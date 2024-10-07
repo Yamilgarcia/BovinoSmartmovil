@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { db } from '../../firebase'; // Ajusta la ruta según la ubicación de tu archivo firebase.js
 import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { Picker } from '@react-native-picker/picker';
@@ -75,6 +75,12 @@ const RegistroAnimalScreen = () => {
 
   // Función para registrar el animal
   const registrarAnimal = async () => {
+    // Validación de campos obligatorios
+    if (!nombre || !sexo || !codigo_idVaca || !raza || !estado) {
+      Alert.alert('Error', 'Por favor completa todos los campos obligatorios');
+      return;
+    }
+
     try {
       const nuevoAnimalRef = await addDoc(collection(db, 'animales'), {
         nombre,
@@ -103,8 +109,9 @@ const RegistroAnimalScreen = () => {
         await addDoc(collection(db, `animales/${animalId}/productosAplicados`), producto);
       }
 
-      alert('Animal registrado exitosamente con todos los datos adicionales');
+      Alert.alert('Éxito', 'Animal registrado exitosamente con todos los datos adicionales');
 
+      // Restablecer los campos del formulario
       setNombre('');
       setSexo('');
       setImagen(null);
@@ -121,15 +128,13 @@ const RegistroAnimalScreen = () => {
       setProductos([{ nombre: '', dosis: '', fecha: new Date(), es_tratamiento: false }]);
     } catch (error) {
       console.error("Error registrando el animal: ", error);
-      alert('Error al registrar el animal');
+      Alert.alert('Error', 'Error al registrar el animal');
     }
   };
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
-    
-
         {/* Contenedor del formulario */}
         <View style={styles.formContainer}>
           <TouchableOpacity onPress={seleccionarImagen} style={styles.imageContainer}>
