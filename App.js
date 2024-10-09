@@ -9,6 +9,9 @@ import MainMenuScreen from './src/screens/MainMenuScreen';
 import GestionAnimalesScreen from './src/screens/GestionAnimalesScreen';
 import RegistroAnimalScreen from './src/screens/RegistroAnimalScreen'; // Importa la pantalla de Registro
 import PerfilAnimalScreen from './src/screens/PerfilAnimalScreen'; // Importa la pantalla Perfil
+import GraficoAnimalesScreen from './src/screens/GraficoAnimalesScreen'; // Asegúrate de que la ruta sea correcta
+
+
 
 const Stack = createStackNavigator();
 
@@ -48,6 +51,13 @@ export default function App() {
           component={PerfilAnimalScreen}
           options={{ title: 'Información General del Animal' }}
         />
+
+
+        <Stack.Screen
+          name="GraficoAnimales"
+          component={GraficoAnimalesScreen}
+          options={{ title: 'Gráfico de Animales' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -86,7 +96,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
- 
+
     color: '#fff',
     marginTop: 50, // Ajusta el margen superior para que el texto esté centrado dentro del óvalo
     zIndex: 2, // Asegúrate de que el texto esté encima del óvalo

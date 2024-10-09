@@ -6,7 +6,7 @@ const MainMenuScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Menú</Text>
-      
+
       <View style={styles.optionsContainer}>
         <TouchableOpacity
           style={styles.optionButton}
@@ -42,6 +42,16 @@ const MainMenuScreen = ({ navigation }) => {
           />
           <Text style={styles.optionText}>Escáner QR</Text>
         </TouchableOpacity>
+
+
+        <TouchableOpacity
+          style={styles.optionButton}
+          onPress={() => navigation.navigate('GraficoAnimales')}
+        >
+        
+          <Text style={styles.optionText}>Gráfico de Animales</Text>
+        </TouchableOpacity>
+
       </View>
     </View>
   );
