@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
-import { Dimensions } from 'react-native';
 import { db } from '../../firebase'; // Ajusta la ruta según la ubicación de tu archivo firebase.js
 import { collection, onSnapshot } from 'firebase/firestore';
 
 const GraficoAnimalesScreen = () => {
   const [dataGrafico, setDataGrafico] = useState([]);
+  const [detalleMes, setDetalleMes] = useState(null); // Estado para manejar detalles por mes
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'animales'), (querySnapshot) => {
@@ -57,19 +57,33 @@ const GraficoAnimalesScreen = () => {
     return colors[index % colors.length];
   };
 
+  // Función para manejar cuando un segmento es tocado
+  const handleSegmentClick = (index) => {
+    const mesSeleccionado = getMonthName(index);
+    setDetalleMes(mesSeleccionado); // Actualizar el estado con el mes seleccionado
+    Alert.alert(`Detalles de ${mesSeleccionado}`, `Número de animales registrados: ${dataGrafico[index].count}`);
+  };
+
+  let screenWidth = Dimensions.get("window").width;
+
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
         <Text style={styles.title}>Registro de Animales por Mes</Text>
         <PieChart
           data={dataGrafico}
-          width={Dimensions.get("window").width - 40}
-          height={220}
+          width={screenWidth - (screenWidth * 0.1)} // Aplicando la misma lógica del gráfico de barras
+          height={300} // Ajustar la altura para que sea similar al gráfico de barras
           chartConfig={{
-            backgroundColor: "#ffffff", // Fondo del gráfico
-            backgroundGradientFrom: "#ffffff", // Color inicial del gradiente de fondo
-            backgroundGradientTo: "#ffffff", // Color final del gradiente de fondo
-            color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`, // Color de los segmentos
+            backgroundGradientFrom: "rgba(255, 0, 0, 0.1)", // Aplicando un fondo degradado similar
+            backgroundGradientFromOpacity: 0.1,
+            backgroundGradientTo: "rgba(255, 0, 0, 0.1)", 
+            backgroundGradientToOpacity: 0.1,
+            color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // Color de los segmentos con opacidad
+            strokeWidth: 2, // Grosor de las líneas del gráfico
+            barPercentage: 0.5,
+            fillShadowGradient: "#FF4444", 
+            fillShadowGradientOpacity: 1,
             labelColor: () => `#344e41`, // Color de las etiquetas
             style: {
               borderRadius: 16,
@@ -82,8 +96,30 @@ const GraficoAnimalesScreen = () => {
             borderRadius: 16,
             backgroundColor: '#ffffff', // Asegúrate de que el fondo sea blanco
           }}
+          backgroundColor='transparent'
         />
+        
+        <View style={styles.leyendasContainer}>
+          {dataGrafico.map((item, index) => (
+            <TouchableOpacity 
+              key={index} 
+              style={styles.leyendaItem} 
+              onPress={() => handleSegmentClick(index)}
+            >
+              <View style={[styles.colorBox, { backgroundColor: item.color }]} />
+              <Text style={styles.leyendaText}>{item.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
+
+      {/* Detalles del mes seleccionado */}
+      {detalleMes && (
+        <View style={styles.detalleMesContainer}>
+          <Text style={styles.detalleMesText}>Detalle de {detalleMes}</Text>
+          {/* Aquí podrías agregar más detalles sobre el mes seleccionado */}
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -100,6 +136,36 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: '#344e41',
     textAlign: 'center', // Centrar el texto
+  },
+  leyendasContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  leyendaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  leyendaText: {
+    fontSize: 16,
+    color: '#344e41',
+    marginLeft: 10,
+  },
+  colorBox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+  },
+  detalleMesContainer: {
+    marginTop: 20,
+    padding: 20,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+  },
+  detalleMesText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#344e41',
   },
 });
 
