@@ -14,6 +14,7 @@ import GraficoAnimalesScreen from './src/screens/GraficoAnimalesScreen';
 import GestionEnfermedadesScreen from './src/screens/GestionEnfermedadesScreen';
 import RegistroEnfermedadScreen from './src/screens/RegistroEnfermedadScreen';
 import PerfilEnfermedadScreen from './src/screens/PerfilEnfermedadScreen';
+import IAScreen from './src/screens/IAScreen'; // Asegúrate de que este archivo existe
 
 const Stack = createStackNavigator();
 
@@ -70,6 +71,12 @@ export default function App() {
           name="PerfilEnfermedad"
           component={PerfilEnfermedadScreen}
           options={{ title: 'Detalles de la Enfermedad' }}
+        />
+        {/* Añade la pantalla IA dentro del Stack.Navigator */}
+        <Stack.Screen
+          name="IAScreen"
+          component={IAScreen}
+          options={{ title: 'IA BovinoSmart' }} // Nueva pantalla IA
         />
       </Stack.Navigator>
     </NavigationContainer>

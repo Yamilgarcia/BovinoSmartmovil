@@ -46,13 +46,20 @@ const MainMenuScreen = ({ navigation }) => {
           <Text style={styles.optionText}>Escáner QR</Text>
         </TouchableOpacity>
 
-
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => navigation.navigate('GraficoAnimales')}
         >
-
           <Text style={styles.optionText}>Gráfico de Animales</Text>
+        </TouchableOpacity>
+
+        {/* Nueva opción para ir a la pantalla de IA */}
+        <TouchableOpacity
+          style={styles.optionButton}
+          onPress={() => navigation.navigate('IAScreen')}
+        >
+         
+          <Text style={styles.optionText}>IA BovinoSmart</Text>
         </TouchableOpacity>
 
       </View>
