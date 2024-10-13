@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal, Pressable } from 'react-native'; // Modal y Pressable para mejorar detalles
 import { PieChart } from 'react-native-chart-kit';
 import { db } from '../../firebase'; // Ajusta la ruta según la ubicación de tu archivo firebase.js
 import { collection, onSnapshot } from 'firebase/firestore';
@@ -7,6 +7,7 @@ import { collection, onSnapshot } from 'firebase/firestore';
 const GraficoAnimalesScreen = () => {
   const [dataGrafico, setDataGrafico] = useState([]);
   const [detalleMes, setDetalleMes] = useState(null); // Estado para manejar detalles por mes
+  const [modalVisible, setModalVisible] = useState(false); // Estado para controlar la visibilidad del modal
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'animales'), (querySnapshot) => {
@@ -31,6 +32,7 @@ const GraficoAnimalesScreen = () => {
         color: getColor(index),
         legendFontColor: "#344e41", // Color de las leyendas
         legendFontSize: 15,
+      
       })).filter(item => item.count > 0); // Filtrar meses sin animales
 
       setDataGrafico(nuevoDataGrafico);
@@ -59,9 +61,12 @@ const GraficoAnimalesScreen = () => {
 
   // Función para manejar cuando un segmento es tocado
   const handleSegmentClick = (index) => {
-    const mesSeleccionado = getMonthName(index);
-    setDetalleMes(mesSeleccionado); // Actualizar el estado con el mes seleccionado
-    Alert.alert(`Detalles de ${mesSeleccionado}`, `Número de animales registrados: ${dataGrafico[index].count}`);
+    const mesSeleccionado = dataGrafico[index].name;  // Usar el nombre directamente de dataGrafico
+    setDetalleMes({
+      mes: mesSeleccionado,
+      count: dataGrafico[index].count
+    }); // Actualizar el estado con el mes y número de animales
+    setModalVisible(true); // Mostrar el modal con detalles
   };
 
   let screenWidth = Dimensions.get("window").width;
@@ -72,8 +77,8 @@ const GraficoAnimalesScreen = () => {
         <Text style={styles.title}>Registro de Animales por Mes</Text>
         <PieChart
           data={dataGrafico}
-          width={screenWidth - (screenWidth * 0.1)} // Aplicando la misma lógica del gráfico de barras
-          height={300} // Ajustar la altura para que sea similar al gráfico de barras
+          width={screenWidth - (screenWidth * 0.1)}
+          height={250} 
           chartConfig={{
             backgroundGradientFrom: "rgba(255, 0, 0, 0.1)", // Aplicando un fondo degradado similar
             backgroundGradientFromOpacity: 0.1,
@@ -90,7 +95,7 @@ const GraficoAnimalesScreen = () => {
             },
           }}
           accessor="count"
-          paddingLeft="15"
+          paddingLeft="50"
           style={{
             marginVertical: 8,
             borderRadius: 16,
@@ -113,12 +118,27 @@ const GraficoAnimalesScreen = () => {
         </View>
       </View>
 
-      {/* Detalles del mes seleccionado */}
+      {/* Modal para Detalles del Mes Seleccionado */}
       {detalleMes && (
-        <View style={styles.detalleMesContainer}>
-          <Text style={styles.detalleMesText}>Detalle de {detalleMes}</Text>
-          {/* Aquí podrías agregar más detalles sobre el mes seleccionado */}
-        </View>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Text style={styles.modalTitle}>Detalle de {detalleMes.mes}</Text>
+              <Text style={styles.modalText}>Número de animales registrados: {detalleMes.count}</Text>
+              <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.textStyle}>Cerrar</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
       )}
     </ScrollView>
   );
@@ -127,7 +147,7 @@ const GraficoAnimalesScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 1,
     backgroundColor: '#fff',
   },
   title: {
@@ -156,16 +176,50 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 5,
   },
-  detalleMesContainer: {
-    marginTop: 20,
-    padding: 20,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
   },
-  detalleMesText: {
-    fontSize: 18,
+  modalView: {
+    margin: 20,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 10,
     color: '#344e41',
+  },
+  modalText: {
+    fontSize: 18,
+    color: '#344e41',
+  },
+  button: {
+    borderRadius: 10,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+    marginTop: 20,
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

@@ -1,17 +1,19 @@
+// App.js
 import 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import * as Font from 'expo-font'; // Importa para cargar la fuente
+import * as Font from 'expo-font';
 
 import MainMenuScreen from './src/screens/MainMenuScreen';
 import GestionAnimalesScreen from './src/screens/GestionAnimalesScreen';
-import RegistroAnimalScreen from './src/screens/RegistroAnimalScreen'; // Importa la pantalla de Registro
-import PerfilAnimalScreen from './src/screens/PerfilAnimalScreen'; // Importa la pantalla Perfil
-import GraficoAnimalesScreen from './src/screens/GraficoAnimalesScreen'; // Asegúrate de que la ruta sea correcta
-
-
+import RegistroAnimalScreen from './src/screens/RegistroAnimalScreen';
+import PerfilAnimalScreen from './src/screens/PerfilAnimalScreen';
+import GraficoAnimalesScreen from './src/screens/GraficoAnimalesScreen';
+import GestionEnfermedadesScreen from './src/screens/GestionEnfermedadesScreen';
+import RegistroEnfermedadScreen from './src/screens/RegistroEnfermedadScreen';
+import PerfilEnfermedadScreen from './src/screens/PerfilEnfermedadScreen';
 
 const Stack = createStackNavigator();
 
@@ -19,7 +21,7 @@ export default function App() {
   useEffect(() => {
     const cargarFuentes = async () => {
       await Font.loadAsync({
-        'Junge': require('./assets/fonts/Junge-Regular.ttf'), // Asegúrate de que la ruta sea correcta
+        'Junge': require('./assets/fonts/Junge-Regular.ttf'),
       });
     };
 
@@ -42,21 +44,32 @@ export default function App() {
         <Stack.Screen
           name="RegistroAnimal"
           component={RegistroAnimalScreen}
-          options={{
-            header: (props) => <CustomHeader {...props} />, // Pasa props al header
-          }}
+          options={{ title: 'Registrar Animal' }}
         />
         <Stack.Screen
           name="PerfilAnimal"
           component={PerfilAnimalScreen}
           options={{ title: 'Información General del Animal' }}
         />
-
-
         <Stack.Screen
           name="GraficoAnimales"
           component={GraficoAnimalesScreen}
           options={{ title: 'Gráfico de Animales' }}
+        />
+        <Stack.Screen
+          name="GestionEnfermedades"
+          component={GestionEnfermedadesScreen}
+          options={{ title: 'Gestión de Enfermedades' }}
+        />
+        <Stack.Screen
+          name="RegistroEnfermedad"
+          component={RegistroEnfermedadScreen}
+          options={{ title: 'Registrar Enfermedad' }}
+        />
+        <Stack.Screen
+          name="PerfilEnfermedad"
+          component={PerfilEnfermedadScreen}
+          options={{ title: 'Detalles de la Enfermedad' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
@@ -76,7 +89,6 @@ const CustomHeader = ({ navigation }) => {
   );
 };
 
-// Estilos para el encabezado personalizado
 const styles = StyleSheet.create({
   headerContainer: {
     alignItems: 'center',
@@ -84,33 +96,31 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   oval: {
-    width: 450, // Aumentar el ancho del óvalo
-    height: 450, // Aumentar la altura del óvalo
+    width: 450,
+    height: 450,
     backgroundColor: '#587A83',
-    borderRadius: 200, // Ajustar el radio para que sea un óvalo
+    borderRadius: 200,
     position: 'absolute',
-    top: -310, // Ajustar la posición para que no cubra el formulario
-    left: -30, // Ajustar según sea necesario
-    zIndex: 1, // Asegúrate de que el óvalo esté detrás del texto
-    opacity: 1, // Asegúrate de que sea visible
+    top: -310,
+    left: -30,
+    zIndex: 1,
+    opacity: 1,
   },
   headerTitle: {
     fontSize: 24,
-
     color: '#fff',
-    marginTop: 50, // Ajusta el margen superior para que el texto esté centrado dentro del óvalo
-    zIndex: 2, // Asegúrate de que el texto esté encima del óvalo
-    fontFamily: 'Junge', // Aplica la fuente Junge
-
+    marginTop: 50,
+    zIndex: 2,
+    fontFamily: 'Junge',
   },
   backButton: {
-    position: 'absolute', // Posicionar la flecha en el encabezado
-    left: 40, // Ajustar según sea necesario
-    top: 55, // Ajustar según sea necesario
-    zIndex: 2, // Asegúrate de que el texto esté encima del óvalo
+    position: 'absolute',
+    left: 40,
+    top: 55,
+    zIndex: 2,
   },
   backIcon: {
-    width: 30, // Ajusta el tamaño de la flecha
+    width: 30,
     height: 24,
   },
 });

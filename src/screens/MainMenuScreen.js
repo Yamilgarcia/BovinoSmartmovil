@@ -19,7 +19,10 @@ const MainMenuScreen = ({ navigation }) => {
           <Text style={styles.optionText}>Gestión del Animal</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.optionButton}>
+        <TouchableOpacity
+          style={styles.optionButton}
+          onPress={() => navigation.navigate('GestionEnfermedades')}
+        >
           <Image
             source={require('../../assets/Enfermedad.png')}
             style={styles.icon}
@@ -48,7 +51,7 @@ const MainMenuScreen = ({ navigation }) => {
           style={styles.optionButton}
           onPress={() => navigation.navigate('GraficoAnimales')}
         >
-        
+
           <Text style={styles.optionText}>Gráfico de Animales</Text>
         </TouchableOpacity>
 
