@@ -37,7 +37,6 @@ const MainMenuScreen = ({ navigation }) => {
           />
           <Text style={styles.optionText}>Gestión de Productos</Text>
         </TouchableOpacity>
-
         <TouchableOpacity style={styles.optionButton}>
           <Image
             source={require('../../assets/QR.png')}
@@ -45,7 +44,16 @@ const MainMenuScreen = ({ navigation }) => {
           />
           <Text style={styles.optionText}>Escáner QR</Text>
         </TouchableOpacity>
-
+        <TouchableOpacity
+  style={styles.optionButton}
+  onPress={() => navigation.navigate('QRScreen')} // Cambia 'EscanerQR' a 'QRScreen'
+>
+  <Image
+    source={require('../../assets/QR.png')}
+    style={styles.icon}
+  />
+  <Text style={styles.optionText}>Escáner QR</Text>
+</TouchableOpacity>
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => navigation.navigate('GraficoAnimales')}
