@@ -42,7 +42,6 @@ const RegistroAnimalScreen = () => {
   const [mostrarFechaProduccion, setMostrarFechaProduccion] = useState(false);
 
 
-
   // Estados para mostrar/ocultar secciones
   const [mostrarEnfermedades, setMostrarEnfermedades] = useState(false);
   const [mostrarProductos, setMostrarProductos] = useState(false);
@@ -91,7 +90,7 @@ const RegistroAnimalScreen = () => {
 
   const registrarControlBano = async (animalId) => {
     try {
-      await addDoc(collection(db, `animales/${animalId}/control_banos`), {
+      await addDoc(collection(db, animales/{animalId}/control_banos), {
         fecha: fechaBano.toISOString().split('T')[0],
         productos_utilizados: productosUtilizados,
       });
@@ -106,7 +105,7 @@ const RegistroAnimalScreen = () => {
 
   const registrarProduccionLeche = async (animalId) => {
     try {
-      await addDoc(collection(db, `animales/${animalId}/produccion_leche`), {
+      await addDoc(collection(db, animales/{animalId}/produccion_leche), {
         fecha: fechaProduccion.toISOString().split('T')[0],
         cantidad: parseFloat(cantidadLeche),
         calidad: calidadLeche,
@@ -121,7 +120,24 @@ const RegistroAnimalScreen = () => {
     }
   };
 
-
+  const registrarInseminacion = async (animalId) => {
+    try {
+      await addDoc(collection(db, animales/{animalId}/inseminaciones), {
+        fecha_inseminacion: fechaInseminacion.toISOString().split('T')[0],
+        tipo_inseminacion: tipoInseminacion,
+        resultado: resultadoInseminacion,
+        observaciones: observacionesInseminacion,
+      });
+      Alert.alert('Éxito', 'Inseminación registrada exitosamente');
+      setFechaInseminacion(new Date());
+      setTipoInseminacion('');
+      setResultadoInseminacion('');
+      setObservacionesInseminacion('');
+    } catch (error) {
+      console.error("Error registrando la inseminación: ", error);
+      Alert.alert('Error', 'Error al registrar la inseminación');
+    }
+  };
 
   const registrarAnimal = async () => {
     if (!nombre || !sexo || !codigo_idVaca || !raza || !estado) {
@@ -146,17 +162,23 @@ const RegistroAnimalScreen = () => {
 
       const animalId = nuevoAnimalRef.id;
 
-
+      // Registrar estado reproductivo si la sección está visible
+      if (mostrarEstadoReproductivo) {
+        await addDoc(collection(db, animales/{animalId}/estado_reproductivo), {
+          ...estadoReproductivo,
+          fecha_ultimo_celo: estadoReproductivo.fecha_ultimo_celo.toISOString().split('T')[0],
+        });
+      }
 
       if (enfermedadSeleccionada) {
-        await addDoc(collection(db, `animales/${animalId}/enfermedades`), {
+        await addDoc(collection(db, animales/{animalId}/enfermedades), {
           enfermedad: enfermedadSeleccionada,
           fecha: fechaEnfermedad.toISOString().split('T')[0],
         });
       }
 
       for (let producto of productos) {
-        await addDoc(collection(db, `animales/${animalId}/productosAplicados`), producto);
+        await addDoc(collection(db, animales/{animalId}/productosAplicados), producto);
       }
 
       // Registrar control de baño si la sección está visible
@@ -169,7 +191,10 @@ const RegistroAnimalScreen = () => {
         await registrarProduccionLeche(animalId);
       }
 
-
+      // Registrar inseminación si la sección está visible
+      if (mostrarInseminaciones) {
+        await registrarInseminacion(animalId);
+      }
 
       Alert.alert('Éxito', 'Animal y datos registrados exitosamente');
       // Restablecer los campos del formulario
@@ -189,9 +214,18 @@ const RegistroAnimalScreen = () => {
       setProductos([{ nombre: '', dosis: '', fecha: new Date(), es_tratamiento: false }]);
       setMostrarBanos(false);
       setMostrarProduccionLeche(false);
-
-
-
+      setMostrarInseminaciones(false);
+      setMostrarEstadoReproductivo(false);
+      setEstadoReproductivo({
+        ciclo_celo: '',
+        fecha_ultimo_celo: new Date(),
+        servicios_realizados: 0,
+        numero_gestaciones: 0,
+        partos_realizados: 0,
+        resultado_prueba_reproductiva: '',
+        resultados_lactancia: '',
+        uso_programa_inseminacion: '',
+      });
     } catch (error) {
       console.error("Error registrando el animal: ", error);
       Alert.alert('Error', 'Error al registrar el animal');
@@ -211,11 +245,7 @@ const RegistroAnimalScreen = () => {
           <TextInput placeholder="Nombre del Animal" value={nombre} onChangeText={setNombre} style={styles.input} />
 
           <Text style={styles.label}>Género:</Text>
-          <Picker
-            selectedValue={sexo}
-            onValueChange={(itemValue) => setSexo(itemValue)}
-            style={styles.input}
-          >
+          <Picker selectedValue={sexo} onValueChange={handleSexoChange} style={styles.input}>
             <Picker.Item label="Seleccionar" value="" />
             <Picker.Item label="Macho" value="Macho" />
             <Picker.Item label="Hembra" value="Hembra" />
@@ -307,113 +337,7 @@ const RegistroAnimalScreen = () => {
             </View>
           )}
 
-          {/* Botón para mostrar/ocultar la sección de productos */}
-          <TouchableOpacity onPress={() => setMostrarProductos(!mostrarProductos)} style={styles.toggleButton}>
-            <Text style={styles.buttonText}>{mostrarProductos ? 'Ocultar Productos Aplicados' : 'Mostrar Productos Aplicados'}</Text>
-          </TouchableOpacity>
-
-          {mostrarProductos && (
-            <View>
-              <Text style={styles.subtitle}>Productos Aplicados</Text>
-              {productos.map((producto, index) => (
-                <View key={index}>
-                  <TextInput
-                    placeholder="Nombre del Producto"
-                    value={producto.nombre}
-                    onChangeText={(value) => {
-                      const nuevosProductos = [...productos];
-                      nuevosProductos[index].nombre = value;
-                      setProductos(nuevosProductos);
-                    }}
-                    style={styles.input}
-                  />
-                  <TextInput
-                    placeholder="Dosis"
-                    value={producto.dosis}
-                    onChangeText={(value) => {
-                      const nuevosProductos = [...productos];
-                      nuevosProductos[index].dosis = value;
-                      setProductos(nuevosProductos);
-                    }}
-                    style={styles.input}
-                  />
-
-                  <TouchableOpacity onPress={() => setMostrarFechaProducto(index)} style={styles.button}>
-                    <Text style={styles.buttonText}>Seleccionar Fecha de Aplicación</Text>
-                  </TouchableOpacity>
-                  {mostrarFechaProducto === index && (
-                    <DateTimePicker
-                      value={producto.fecha}
-                      mode="date"
-                      display="default"
-                      onChange={(event, selectedDate) => {
-                        setMostrarFechaProducto(null);
-                        if (selectedDate) {
-                          const nuevosProductos = [...productos];
-                          nuevosProductos[index].fecha = selectedDate;
-                          setProductos(nuevosProductos);
-                        }
-                      }}
-                    />
-                  )}
-                  <Text>Fecha de Aplicación Seleccionada: {producto.fecha.toDateString()}</Text>
-
-                  <Text>¿Es un tratamiento?</Text>
-                  <Picker
-                    selectedValue={producto.es_tratamiento}
-                    onValueChange={(value) => {
-                      const nuevosProductos = [...productos];
-                      nuevosProductos[index].es_tratamiento = value;
-                      setProductos(nuevosProductos);
-                    }}
-                    style={styles.input}
-                  >
-                    <Picker.Item label="No" value={false} />
-                    <Picker.Item label="Sí" value={true} />
-                  </Picker>
-                </View>
-              ))}
-              <TouchableOpacity onPress={() => setProductos([...productos, { nombre: '', dosis: '', fecha: new Date(), es_tratamiento: false }])} style={styles.button}>
-                <Text style={styles.buttonText}>Añadir Producto</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Botón para mostrar/ocultar la sección de baños */}
-          <TouchableOpacity onPress={() => setMostrarBanos(!mostrarBanos)} style={styles.toggleButton}>
-            <Text style={styles.buttonText}>{mostrarBanos ? 'Ocultar Baños' : 'Mostrar Baños'}</Text>
-          </TouchableOpacity>
-
-          {mostrarBanos && (
-            <View>
-              <Text style={styles.label}>Fecha del Baño:</Text>
-              <TouchableOpacity onPress={() => setMostrarFechaBano(true)} style={styles.button}>
-                <Text style={styles.buttonText}>Seleccionar Fecha del Baño</Text>
-              </TouchableOpacity>
-              {mostrarFechaBano && (
-                <DateTimePicker
-                  value={fechaBano}
-                  mode="date"
-                  display="default"
-                  onChange={(event, selectedDate) => {
-                    setMostrarFechaBano(false);
-                    if (selectedDate) {
-                      setFechaBano(selectedDate);
-                    }
-                  }}
-                />
-              )}
-              <Text>Fecha Seleccionada: {fechaBano.toDateString()}</Text>
-
-              <Text style={styles.label}>Productos Utilizados:</Text>
-              <TextInput
-                placeholder="Productos utilizados"
-                value={productosUtilizados}
-                onChangeText={setProductosUtilizados}
-                style={styles.input}
-              />
-            </View>
-          )}
+        
 
           {/* Botón para mostrar/ocultar la sección de producción de leche */}
           <TouchableOpacity onPress={() => setMostrarProduccionLeche(!mostrarProduccionLeche)} style={styles.toggleButton}>
@@ -459,6 +383,114 @@ const RegistroAnimalScreen = () => {
           )}
 
 
+          {/* Botón para mostrar/ocultar la sección de estado reproductivo */}
+          {mostrarEstadoReproductivo && (
+            <View>
+              {sexo === 'Hembra' ? (
+                <View>
+                  <Text style={styles.label}>Ciclo de Celo:</Text>
+                  <Picker
+                    selectedValue={estadoReproductivo.ciclo_celo}
+                    onValueChange={(value) => setEstadoReproductivo({ ...estadoReproductivo, ciclo_celo: value })}
+                    style={styles.input}
+                  >
+                    <Picker.Item label="Seleccione el ciclo" value="" />
+                    <Picker.Item label="18 días" value="18 días" />
+                    <Picker.Item label="21 días" value="21 días" />
+                    <Picker.Item label="24 días" value="24 días" />
+                    <Picker.Item label="28 días" value="28 días" />
+                  </Picker>
+
+                  <TouchableOpacity onPress={() => setMostrarFechaCelo(true)} style={styles.button}>
+                    <Text style={styles.buttonText}>Seleccionar Fecha del Último Celo</Text>
+                  </TouchableOpacity>
+                  {mostrarFechaCelo && (
+                    <DateTimePicker
+                      value={estadoReproductivo.fecha_ultimo_celo}
+                      mode="date"
+                      display="default"
+                      onChange={(event, selectedDate) => {
+                        setMostrarFechaCelo(false);
+                        if (selectedDate) setEstadoReproductivo({ ...estadoReproductivo, fecha_ultimo_celo: selectedDate });
+                      }}
+                    />
+                  )}
+                  <Text>Fecha del Último Celo: {estadoReproductivo.fecha_ultimo_celo.toDateString()}</Text>
+
+                  <Text style={styles.label}>Servicios Realizados:</Text>
+                  <Picker
+                    selectedValue={estadoReproductivo.servicios_realizados}
+                    onValueChange={(value) => setEstadoReproductivo({ ...estadoReproductivo, servicios_realizados: value })}
+                    style={styles.input}
+                  >
+                    {[...Array(10).keys()].map((num) => (
+                      <Picker.Item key={num} label={num.toString()} value={num} />
+                    ))}
+                  </Picker>
+
+                  <Text style={styles.label}>Número de Gestaciones:</Text>
+                  <Picker
+                    selectedValue={estadoReproductivo.numero_gestaciones}
+                    onValueChange={(value) => setEstadoReproductivo({ ...estadoReproductivo, numero_gestaciones: value })}
+                    style={styles.input}
+                  >
+                    {[...Array(10).keys()].map((num) => (
+                      <Picker.Item key={num} label={num.toString()} value={num} />
+                    ))}
+                  </Picker>
+
+                  <Text style={styles.label}>Partos Realizados:</Text>
+                  <Picker
+                    selectedValue={estadoReproductivo.partos_realizados}
+                    onValueChange={(value) => setEstadoReproductivo({ ...estadoReproductivo, partos_realizados: value })}
+                    style={styles.input}
+                  >
+                    {[...Array(10).keys()].map((num) => (
+                      <Picker.Item key={num} label={num.toString()} value={num} />
+                    ))}
+                  </Picker>
+
+                  <Text style={styles.label}>Resultados de la Lactancia:</Text>
+                  <Picker
+                    selectedValue={estadoReproductivo.resultados_lactancia}
+                    onValueChange={(value) => setEstadoReproductivo({ ...estadoReproductivo, resultados_lactancia: value })}
+                    style={styles.input}
+                  >
+                    <Picker.Item label="Seleccione" value="" />
+                    <Picker.Item label="Alta producción" value="Alta producción" />
+                    <Picker.Item label="Producción normal" value="Producción normal" />
+                    <Picker.Item label="Baja producción" value="Baja producción" />
+                  </Picker>
+                </View>
+              ) : (
+                <View>
+                  <Text style={styles.label}>Uso en Programa de Inseminación:</Text>
+                  <Picker
+                    selectedValue={usoProgramaInseminacion}
+                    onValueChange={(itemValue) => setUsoProgramaInseminacion(itemValue)}
+                    style={styles.input}
+                  >
+                    <Picker.Item label="Seleccione" value="" />
+                    <Picker.Item label="Frecuente" value="Frecuente" />
+                    <Picker.Item label="Ocasional" value="Ocasional" />
+                    <Picker.Item label="Nunca" value="Nunca" />
+                  </Picker>
+
+                  <Text style={styles.label}>Resultado de la Prueba Reproductiva:</Text>
+                  <Picker
+                    selectedValue={resultadoPruebaReproductiva}
+                    onValueChange={(itemValue) => setResultadoPruebaReproductiva(itemValue)}
+                    style={styles.input}
+                  >
+                    <Picker.Item label="Seleccione" value="" />
+                    <Picker.Item label="Positivo" value="Positivo" />
+                    <Picker.Item label="Negativo" value="Negativo" />
+                    <Picker.Item label="Pendiente" value="Pendiente" />
+                  </Picker>
+                </View>
+              )}
+            </View>
+          )}
 
 
 
