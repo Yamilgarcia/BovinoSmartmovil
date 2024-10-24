@@ -51,7 +51,7 @@ const GestionAnimalesScreen = ({ navigation }) => {
                 source={{ uri: animal.imagen || 'https://via.placeholder.com/100' }}
                 style={styles.cardImage}
               />
-              <Text style={styles.cardTitle}>{animal.codigo_idVaca}:</Text>
+              <Text style={styles.cardTitle}>{animal.nombre}:</Text>
             </TouchableOpacity>
           ))
         ) : (

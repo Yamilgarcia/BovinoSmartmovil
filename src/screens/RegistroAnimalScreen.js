@@ -28,10 +28,29 @@ const RegistroAnimalScreen = () => {
   const [mostrarFechaEnfermedad, setMostrarFechaEnfermedad] = useState(null);
   const [mostrarFechaProducto, setMostrarFechaProducto] = useState(null);
 
+  // Estados para control de baños
+  const [fechaBano, setFechaBano] = useState(new Date());
+  const [productosUtilizados, setProductosUtilizados] = useState('');
+  const [mostrarBanos, setMostrarBanos] = useState(false);
+  const [mostrarFechaBano, setMostrarFechaBano] = useState(false);
+
+  // Estados para producción de leche
+  const [fechaProduccion, setFechaProduccion] = useState(new Date());
+  const [cantidadLeche, setCantidadLeche] = useState('');
+  const [calidadLeche, setCalidadLeche] = useState('');
+  const [mostrarProduccionLeche, setMostrarProduccionLeche] = useState(false);
+  const [mostrarFechaProduccion, setMostrarFechaProduccion] = useState(false);
+
+
+
   // Estados para mostrar/ocultar secciones
   const [mostrarEnfermedades, setMostrarEnfermedades] = useState(false);
   const [mostrarProductos, setMostrarProductos] = useState(false);
-  const [mostrarPesos, setMostrarPesos] = useState(false); // Estado para mostrar/ocultar los pesos
+  const [mostrarPesos, setMostrarPesos] = useState(false);
+
+
+
+
 
   useEffect(() => {
     const cargarEnfermedades = async () => {
@@ -70,6 +89,40 @@ const RegistroAnimalScreen = () => {
     }
   };
 
+  const registrarControlBano = async (animalId) => {
+    try {
+      await addDoc(collection(db, `animales/${animalId}/control_banos`), {
+        fecha: fechaBano.toISOString().split('T')[0],
+        productos_utilizados: productosUtilizados,
+      });
+      Alert.alert('Éxito', 'Control de baño registrado exitosamente');
+      setFechaBano(new Date());
+      setProductosUtilizados('');
+    } catch (error) {
+      console.error("Error registrando el control de baño: ", error);
+      Alert.alert('Error', 'Error al registrar el control de baño');
+    }
+  };
+
+  const registrarProduccionLeche = async (animalId) => {
+    try {
+      await addDoc(collection(db, `animales/${animalId}/produccion_leche`), {
+        fecha: fechaProduccion.toISOString().split('T')[0],
+        cantidad: parseFloat(cantidadLeche),
+        calidad: calidadLeche,
+      });
+      Alert.alert('Éxito', 'Producción de leche registrada exitosamente');
+      setFechaProduccion(new Date());
+      setCantidadLeche('');
+      setCalidadLeche('');
+    } catch (error) {
+      console.error("Error registrando la producción de leche: ", error);
+      Alert.alert('Error', 'Error al registrar la producción de leche');
+    }
+  };
+
+
+
   const registrarAnimal = async () => {
     if (!nombre || !sexo || !codigo_idVaca || !raza || !estado) {
       Alert.alert('Error', 'Por favor completa todos los campos obligatorios');
@@ -93,6 +146,8 @@ const RegistroAnimalScreen = () => {
 
       const animalId = nuevoAnimalRef.id;
 
+
+
       if (enfermedadSeleccionada) {
         await addDoc(collection(db, `animales/${animalId}/enfermedades`), {
           enfermedad: enfermedadSeleccionada,
@@ -104,7 +159,19 @@ const RegistroAnimalScreen = () => {
         await addDoc(collection(db, `animales/${animalId}/productosAplicados`), producto);
       }
 
-      Alert.alert('Éxito', 'Animal registrado exitosamente');
+      // Registrar control de baño si la sección está visible
+      if (mostrarBanos) {
+        await registrarControlBano(animalId);
+      }
+
+      // Registrar producción de leche si la sección está visible
+      if (mostrarProduccionLeche) {
+        await registrarProduccionLeche(animalId);
+      }
+
+
+
+      Alert.alert('Éxito', 'Animal y datos registrados exitosamente');
       // Restablecer los campos del formulario
       setNombre('');
       setSexo('');
@@ -120,6 +187,11 @@ const RegistroAnimalScreen = () => {
       setEnfermedadSeleccionada('');
       setFechaEnfermedad(new Date());
       setProductos([{ nombre: '', dosis: '', fecha: new Date(), es_tratamiento: false }]);
+      setMostrarBanos(false);
+      setMostrarProduccionLeche(false);
+
+
+
     } catch (error) {
       console.error("Error registrando el animal: ", error);
       Alert.alert('Error', 'Error al registrar el animal');
@@ -139,11 +211,16 @@ const RegistroAnimalScreen = () => {
           <TextInput placeholder="Nombre del Animal" value={nombre} onChangeText={setNombre} style={styles.input} />
 
           <Text style={styles.label}>Género:</Text>
-          <Picker selectedValue={sexo} onValueChange={(itemValue) => setSexo(itemValue)} style={styles.input}>
+          <Picker
+            selectedValue={sexo}
+            onValueChange={(itemValue) => setSexo(itemValue)}
+            style={styles.input}
+          >
             <Picker.Item label="Seleccionar" value="" />
             <Picker.Item label="Macho" value="Macho" />
             <Picker.Item label="Hembra" value="Hembra" />
           </Picker>
+
 
           <Text style={styles.label}>Código Único:</Text>
           <TextInput placeholder="Código Único" value={codigo_idVaca} onChangeText={setCodigoIdVaca} style={styles.input} />
@@ -302,6 +379,89 @@ const RegistroAnimalScreen = () => {
             </View>
           )}
 
+          {/* Botón para mostrar/ocultar la sección de baños */}
+          <TouchableOpacity onPress={() => setMostrarBanos(!mostrarBanos)} style={styles.toggleButton}>
+            <Text style={styles.buttonText}>{mostrarBanos ? 'Ocultar Baños' : 'Mostrar Baños'}</Text>
+          </TouchableOpacity>
+
+          {mostrarBanos && (
+            <View>
+              <Text style={styles.label}>Fecha del Baño:</Text>
+              <TouchableOpacity onPress={() => setMostrarFechaBano(true)} style={styles.button}>
+                <Text style={styles.buttonText}>Seleccionar Fecha del Baño</Text>
+              </TouchableOpacity>
+              {mostrarFechaBano && (
+                <DateTimePicker
+                  value={fechaBano}
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setMostrarFechaBano(false);
+                    if (selectedDate) {
+                      setFechaBano(selectedDate);
+                    }
+                  }}
+                />
+              )}
+              <Text>Fecha Seleccionada: {fechaBano.toDateString()}</Text>
+
+              <Text style={styles.label}>Productos Utilizados:</Text>
+              <TextInput
+                placeholder="Productos utilizados"
+                value={productosUtilizados}
+                onChangeText={setProductosUtilizados}
+                style={styles.input}
+              />
+            </View>
+          )}
+
+          {/* Botón para mostrar/ocultar la sección de producción de leche */}
+          <TouchableOpacity onPress={() => setMostrarProduccionLeche(!mostrarProduccionLeche)} style={styles.toggleButton}>
+            <Text style={styles.buttonText}>{mostrarProduccionLeche ? 'Ocultar Producción de Leche' : 'Mostrar Producción de Leche'}</Text>
+          </TouchableOpacity>
+
+          {mostrarProduccionLeche && (
+            <View>
+              <Text style={styles.label}>Fecha de Producción:</Text>
+              <TouchableOpacity onPress={() => setMostrarFechaProduccion(true)} style={styles.button}>
+                <Text style={styles.buttonText}>Seleccionar Fecha</Text>
+              </TouchableOpacity>
+              {mostrarFechaProduccion && (
+                <DateTimePicker
+                  value={fechaProduccion}
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setMostrarFechaProduccion(false);
+                    if (selectedDate) setFechaProduccion(selectedDate);
+                  }}
+                />
+              )}
+              <Text>Fecha Seleccionada: {fechaProduccion.toDateString()}</Text>
+
+              <Text style={styles.label}>Cantidad (L):</Text>
+              <TextInput
+                placeholder="Cantidad de leche"
+                value={cantidadLeche}
+                onChangeText={setCantidadLeche}
+                style={styles.input}
+                keyboardType="numeric"
+              />
+
+              <Text style={styles.label}>Calidad:</Text>
+              <TextInput
+                placeholder="Calidad de la leche"
+                value={calidadLeche}
+                onChangeText={setCalidadLeche}
+                style={styles.input}
+              />
+            </View>
+          )}
+
+
+
+
+
           <TouchableOpacity onPress={registrarAnimal} style={styles.button}>
             <Text style={styles.buttonText}>Registrar Animal</Text>
           </TouchableOpacity>
@@ -323,7 +483,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderColor: '#3E7B31',
     borderWidth: 4,
-    marginTop: 60, // Espacio adicional para separar el formulario del encabezado
+    marginTop: 60,
   },
   label: {
     fontSize: 16,
