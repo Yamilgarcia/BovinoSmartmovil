@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
-import LeafBackground from './LeafBackground';
-import QRSVG from './assets/QR.png';
+
+import QRSVG from '../../assets/QR.png';
 
 export default function EscanerQR({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
@@ -37,63 +37,64 @@ export default function EscanerQR({ navigation }) {
   }
 
   return (
-    <LeafBackground>
-      <View style={styles.container}>
-        <View style={styles.customHeader}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Escáner QR</Text>
-        </View>
 
-        <View style={styles.searchWrapper}>
-          <View style={styles.searchContainer}>
-            <TextInput
-              placeholder="Buscar"
-              style={styles.searchInput}
-              placeholderTextColor="#666"
-              value={searchText}
-              onChangeText={(text) => setSearchText(text)}
-            />
-            <Image source={require('./assets/buscar.png')} style={styles.searchIcon} />
-          </View>
-          <TouchableOpacity style={styles.searchButton}>
-            <Text style={styles.searchButtonText}>Buscar</Text>
-          </TouchableOpacity>
-        </View>
-
-        {!showScanner ? (
-          <View style={styles.scannerArea}>
-            <QRSVG style={styles.qrImage} width={200} height={200} />
-            <TouchableOpacity
-              style={styles.scanButton}
-              onPress={handleScanButtonPress} // Limpiar barra y mostrar escáner
-            >
-              <Text style={styles.scanButtonText}>Escanear Código</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.cameraWrapper}>
-            <BarCodeScanner
-              onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-              style={styles.qrScanner}
-              barCodeTypes={[
-                BarCodeScanner.Constants.BarCodeType.qr, 
-                BarCodeScanner.Constants.BarCodeType.code128, 
-                BarCodeScanner.Constants.BarCodeType.code39
-              ]}
-            />
-            <View style={styles.overlayTop} />
-            <View style={styles.overlayBottom} />
-            <View style={styles.overlayLeft} />
-            <View style={styles.overlayRight} />
-          </View>
-        )}
+    <View style={styles.container}>
+      <View style={styles.customHeader}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>Escáner QR</Text>
       </View>
-    </LeafBackground>
+
+      <View style={styles.searchWrapper}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            placeholder="Buscar"
+            style={styles.searchInput}
+            placeholderTextColor="#666"
+            value={searchText}
+            onChangeText={(text) => setSearchText(text)}
+          />
+          <Image source={require('../../assets/buscar.png')} style={styles.searchIcon} />
+        </View>
+        <TouchableOpacity style={styles.searchButton}>
+          <Text style={styles.searchButtonText}>Buscar</Text>
+        </TouchableOpacity>
+      </View>
+
+      {!showScanner ? (
+  <View style={styles.scannerArea}>
+    <Image source={QRSVG} style={styles.qrImage} />
+    <TouchableOpacity
+      style={styles.scanButton}
+      onPress={handleScanButtonPress} // Limpiar barra y mostrar escáner
+    >
+      <Text style={styles.scanButtonText}>Escanear Código</Text>
+    </TouchableOpacity>
+  </View>
+) : (
+  <View style={styles.cameraWrapper}>
+    <BarCodeScanner
+      onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+      style={styles.qrScanner}
+      barCodeTypes={[
+        BarCodeScanner.Constants.BarCodeType.qr,
+        BarCodeScanner.Constants.BarCodeType.code128,
+        BarCodeScanner.Constants.BarCodeType.code39
+      ]}
+    />
+    <View style={styles.overlayTop} />
+    <View style={styles.overlayBottom} />
+    <View style={styles.overlayLeft} />
+    <View style={styles.overlayRight} />
+  </View>
+)}
+
+    </View>
+
   );
 }
 

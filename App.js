@@ -5,7 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import * as Font from 'expo-font';
-import EscanerQR from './src/screens/EscanerQR'; 
+import EscanerQR from './src/screens/EscanerQR';
 
 
 import MainMenuScreen from './src/screens/MainMenuScreen';
@@ -80,15 +80,17 @@ export default function App() {
           component={IAScreen}
           options={{ title: 'IA BovinoSmart' }} // Nueva pantalla IA
         />
-  
+
         <Stack.Screen
-          name="EscanerQR"
+          name="QRScreen"
           component={EscanerQR}
           options={{ title: 'Escáner QR' }}
         />
 
 
-        
+
+
+
       </Stack.Navigator>
     </NavigationContainer>
   );
