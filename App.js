@@ -1,4 +1,3 @@
-// App.js
 import 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -17,7 +16,8 @@ import GestionEnfermedadesScreen from './src/screens/GestionEnfermedadesScreen';
 import RegistroEnfermedadScreen from './src/screens/RegistroEnfermedadScreen';
 import PerfilEnfermedadScreen from './src/screens/PerfilEnfermedadScreen';
 import IAScreen from './src/screens/IAScreen'; // Asegúrate de que este archivo existe
-
+import RegistroProducto from './src/screens/RegistroProductoScreen';
+import GestionProductosScreen from './src/screens/GestionProductoScreen';
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -88,8 +88,18 @@ export default function App() {
         />
 
 
+        <Stack.Screen
+          name="RegistroProductoScreen"
+          component={RegistroProducto}
+          options={{ title: 'RegistroProductoScreen' }}
+        />
 
 
+        <Stack.Screen
+          name="GestionProductosScreen"
+          component={GestionProductosScreen}
+          options={{ title: 'GestionProductosScreen' }}
+        />
 
       </Stack.Navigator>
     </NavigationContainer>
