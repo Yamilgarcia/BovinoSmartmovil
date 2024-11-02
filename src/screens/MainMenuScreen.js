@@ -1,4 +1,3 @@
-// src/screens/MainMenuScreen.js
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 
@@ -30,20 +29,16 @@ const MainMenuScreen = ({ navigation }) => {
           <Text style={styles.optionText}>Gestión de Enfermedades</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.optionButton}>
-          <Image
-            source={require('../../assets/Producto.png')}
-            style={styles.icon}
-          />
-          <Text style={styles.optionText}>Gestión de Productos</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.optionButton}>
-          <Image
-            source={require('../../assets/QR.png')}
-            style={styles.icon}
-          />
-          <Text style={styles.optionText}>Escáner QR</Text>
-        </TouchableOpacity>
+
+
+
+       
+       
+       
+       
+        
+        
+        
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => navigation.navigate('QRScreen')} // Cambia 'EscanerQR' a 'QRScreen'
@@ -54,6 +49,9 @@ const MainMenuScreen = ({ navigation }) => {
           />
           <Text style={styles.optionText}>Escáner QR</Text>
         </TouchableOpacity>
+
+
+
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => navigation.navigate('GraficoAnimales')}
