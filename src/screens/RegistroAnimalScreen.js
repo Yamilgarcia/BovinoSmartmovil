@@ -79,6 +79,9 @@ const RegistroAnimalScreen = () => {
   };
 
 
+  
+
+
   useEffect(() => {
     const cargarEnfermedades = async () => {
       try {
@@ -167,6 +170,16 @@ const RegistroAnimalScreen = () => {
     }
   };
 
+
+
+
+
+
+
+
+
+
+  
   const registrarAnimal = async () => {
     if (!nombre || !sexo || !codigo_idVaca || !raza || !estado) {
       Alert.alert('Error', 'Por favor completa todos los campos obligatorios');
@@ -192,11 +205,20 @@ const RegistroAnimalScreen = () => {
 
       // Registrar estado reproductivo si la sección está visible
       if (mostrarEstadoReproductivo) {
-        await addDoc(collection(db, `animales/${animalId}/estado_reproductivo`), {
-          ...estadoReproductivo,
-          fecha_ultimo_celo: estadoReproductivo.fecha_ultimo_celo.toISOString().split('T')[0],
-        });
+        const estadoData = {
+          ciclo_celo: sexo === 'Hembra' ? estadoReproductivo.ciclo_celo : null,
+          fecha_ultimo_celo: sexo === 'Hembra' ? estadoReproductivo.fecha_ultimo_celo.toISOString().split('T')[0] : null,
+          servicios_realizados: sexo === 'Hembra' ? estadoReproductivo.servicios_realizados : null,
+          numero_gestaciones: sexo === 'Hembra' ? estadoReproductivo.numero_gestaciones : null,
+          partos_realizados: sexo === 'Hembra' ? estadoReproductivo.partos_realizados : null,
+          resultados_lactancia: sexo === 'Hembra' ? estadoReproductivo.resultados_lactancia : null,
+          uso_programa_inseminacion: sexo === 'Macho' ? usoProgramaInseminacion : null,
+          resultado_prueba_reproductiva: sexo === 'Macho' ? resultadoPruebaReproductiva : null,
+        };
+      
+        await addDoc(collection(db, `animales/${animalId}/estado_reproductivo`), estadoData);
       }
+      
 
       if (enfermedadSeleccionada) {
         await addDoc(collection(db, `animales/${animalId}/enfermedades`), {
@@ -211,9 +233,9 @@ const RegistroAnimalScreen = () => {
 
       // Registrar control de baño si la sección está visible
       if (mostrarBanos) {
+        console.log("Registrando control de baño para animal:", animalId);
         await registrarControlBano(animalId);
       }
-
       // Registrar producción de leche si la sección está visible
       if (mostrarProduccionLeche) {
         await registrarProduccionLeche(animalId);
