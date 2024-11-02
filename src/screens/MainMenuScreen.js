@@ -45,15 +45,15 @@ const MainMenuScreen = ({ navigation }) => {
           <Text style={styles.optionText}>Escáner QR</Text>
         </TouchableOpacity>
         <TouchableOpacity
-  style={styles.optionButton}
-  onPress={() => navigation.navigate('QRScreen')} // Cambia 'EscanerQR' a 'QRScreen'
->
-  <Image
-    source={require('../../assets/QR.png')}
-    style={styles.icon}
-  />
-  <Text style={styles.optionText}>Escáner QR</Text>
-</TouchableOpacity>
+          style={styles.optionButton}
+          onPress={() => navigation.navigate('QRScreen')} // Cambia 'EscanerQR' a 'QRScreen'
+        >
+          <Image
+            source={require('../../assets/QR.png')}
+            style={styles.icon}
+          />
+          <Text style={styles.optionText}>Escáner QR</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => navigation.navigate('GraficoAnimales')}
@@ -66,9 +66,31 @@ const MainMenuScreen = ({ navigation }) => {
           style={styles.optionButton}
           onPress={() => navigation.navigate('IAScreen')}
         >
-         
+
           <Text style={styles.optionText}>IA BovinoSmart</Text>
         </TouchableOpacity>
+
+
+
+
+        <TouchableOpacity
+          style={styles.optionButton}
+          onPress={() => navigation.navigate('RegistroProductoScreen')}
+        >
+          
+          <Text style={styles.optionText}>RegistroProductoScreen</Text>
+        </TouchableOpacity>
+
+
+
+        <TouchableOpacity
+          style={styles.optionButton}
+          onPress={() => navigation.navigate('GestionProductosScreen')}
+        >
+          
+          <Text style={styles.optionText}>GestionProductosScreen</Text>
+        </TouchableOpacity>
+
 
       </View>
     </View>
