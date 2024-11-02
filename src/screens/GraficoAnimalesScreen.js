@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal, Pressable } from 'react-native'; // Modal y Pressable para mejorar detalles
 import { PieChart } from 'react-native-chart-kit';
-import { db } from '../../firebase'; // Ajusta la ruta según la ubicación de tu archivo firebase.js
+import { db } from '../../src/conection/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 
 const GraficoAnimalesScreen = () => {

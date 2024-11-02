@@ -1,40 +1,47 @@
 // src/screens/GestionAnimalesScreen.js
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
-import { db } from '../../firebase'; // Asegúrate de que la ruta es correcta
+import { db } from '../../src/conection/firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { useFocusEffect } from '@react-navigation/native';
 
 const GestionAnimalesScreen = ({ navigation }) => {
   const [animales, setAnimales] = useState([]);
 
-  useEffect(() => {
-    // Función para obtener la lista de animales desde Firestore
-    const fetchAnimales = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'animales'));
-        const animalesList = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setAnimales(animalesList);
-      } catch (error) {
-        console.error("Error al obtener los animales: ", error);
-      }
-    };
+  // Función para obtener la lista de animales desde Firestore
+  const fetchAnimales = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'animales'));
+      const animalesList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setAnimales(animalesList);
+    } catch (error) {
+      console.error("Error al obtener los animales: ", error);
+    }
+  };
 
-    fetchAnimales();
-  }, []);
+  // Actualiza la lista de animales cada vez que esta pantalla recibe el foco
+  useFocusEffect(
+    useCallback(() => {
+      fetchAnimales();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Gestión de Animal:</Text>
-      
+
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backButton}>←</Text>
         </TouchableOpacity>
         <Text style={styles.searchTitle}>Buscar</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('RegistroAnimal')}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate('RegistroAnimal')}
+        >
           <Text style={styles.addText}>+</Text>
         </TouchableOpacity>
       </View>
@@ -42,10 +49,10 @@ const GestionAnimalesScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.cardsContainer}>
         {animales.length > 0 ? (
           animales.map((animal) => (
-            <TouchableOpacity 
-              key={animal.id} 
+            <TouchableOpacity
+              key={animal.id}
               style={styles.card}
-              onPress={() => navigation.navigate('PerfilAnimal', { animalId: animal.id })} // Navega a PerfilAnimal
+              onPress={() => navigation.navigate('PerfilAnimal', { animalId: animal.id })}
             >
               <Image
                 source={{ uri: animal.imagen || 'https://via.placeholder.com/100' }}

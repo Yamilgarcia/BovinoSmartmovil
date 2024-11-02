@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, Image, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker'; // Importa ImagePicker para seleccionar imágenes
-import { db } from '../../firebase'; // Asegúrate de que la ruta es correcta
+import { db } from '../../src/conection/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
 const RegistroEnfermedadScreen = ({ navigation }) => {

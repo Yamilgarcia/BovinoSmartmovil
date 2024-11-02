@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { db } from '../../firebase';
+import { db } from '../../src/conection/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
 const RegistroProductoScreen = () => {

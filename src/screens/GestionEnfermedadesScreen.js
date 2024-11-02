@@ -1,7 +1,7 @@
 // src/screens/GestionEnfermedadesScreen.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
-import { db } from '../../firebase'; // Asegúrate de que la ruta es correcta
+import { db } from '../../src/conection/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
 const GestionEnfermedadesScreen = ({ navigation }) => {

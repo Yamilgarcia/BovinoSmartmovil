@@ -7,7 +7,7 @@ import * as Font from 'expo-font';
 import EscanerQR from './src/screens/EscanerQR';
 
 
-import MainMenuScreen from './src/screens/MainMenuScreen';
+import MainMenuScreen from './src/navegation/MainMenuScreen';
 import GestionAnimalesScreen from './src/screens/GestionAnimalesScreen';
 import RegistroAnimalScreen from './src/screens/RegistroAnimalScreen';
 import PerfilAnimalScreen from './src/screens/PerfilAnimalScreen';
@@ -111,7 +111,7 @@ const CustomHeader = ({ navigation }) => {
   return (
     <View style={styles.headerContainer}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Image source={require('./assets/FlechaRetro.png')} style={styles.backIcon} />
+        <Image source={require('./assets/iconos/FlechaRetro.png')} style={styles.backIcon} />
       </TouchableOpacity>
       <View style={styles.oval} />
       <Text style={styles.headerTitle}>Registro de Animal:</Text>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 
-import QRSVG from '../../assets/QR.png';
+import QRSVG from '../../assets/iconos/QR.png';
 
 export default function EscanerQR({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
@@ -58,7 +58,7 @@ export default function EscanerQR({ navigation }) {
             value={searchText}
             onChangeText={(text) => setSearchText(text)}
           />
-          <Image source={require('../../assets/buscar.png')} style={styles.searchIcon} />
+          <Image source={require('../../assets/iconos/buscar.png')} style={styles.searchIcon} />
         </View>
         <TouchableOpacity style={styles.searchButton}>
           <Text style={styles.searchButtonText}>Buscar</Text>

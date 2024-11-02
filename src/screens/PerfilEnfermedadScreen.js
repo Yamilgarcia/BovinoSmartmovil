@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Button, Alert, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { db } from '../../firebase'; // Asegúrate de que la ruta es correcta
+import { db } from '../../src/conection/firebase';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore'; // Importa deleteDoc
 import * as ImagePicker from 'expo-image-picker'; // Importa ImagePicker
 

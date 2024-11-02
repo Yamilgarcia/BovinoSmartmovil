@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
-import { db } from '../../firebase';
+import { db } from '../../src/conection/firebase';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -79,7 +79,26 @@ const RegistroAnimalScreen = () => {
   };
 
 
-  
+  // Función para formatear la fecha en dd/mm/yyyy
+  const formatDate = (date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+
+  const verificarCodigoUnico = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'animales'));
+      const existeCodigo = querySnapshot.docs.some(doc => doc.data().codigo_idVaca === codigo_idVaca);
+      return existeCodigo;
+    } catch (error) {
+      console.error("Error al verificar el código único: ", error);
+      Alert.alert('Error', 'Hubo un problema al verificar el código único');
+      return false;
+    }
+  };
 
 
   useEffect(() => {
@@ -179,10 +198,16 @@ const RegistroAnimalScreen = () => {
 
 
 
-  
+
   const registrarAnimal = async () => {
     if (!nombre || !sexo || !codigo_idVaca || !raza || !estado) {
       Alert.alert('Error', 'Por favor completa todos los campos obligatorios');
+      return;
+    }
+
+    const existeCodigo = await verificarCodigoUnico();
+    if (existeCodigo) {
+      Alert.alert('Error', 'El código único ya está registrado para otro animal. Por favor, usa un código diferente.');
       return;
     }
 
@@ -215,10 +240,10 @@ const RegistroAnimalScreen = () => {
           uso_programa_inseminacion: sexo === 'Macho' ? usoProgramaInseminacion : null,
           resultado_prueba_reproductiva: sexo === 'Macho' ? resultadoPruebaReproductiva : null,
         };
-      
+
         await addDoc(collection(db, `animales/${animalId}/estado_reproductivo`), estadoData);
       }
-      
+
 
       if (enfermedadSeleccionada) {
         await addDoc(collection(db, `animales/${animalId}/enfermedades`), {
@@ -287,7 +312,7 @@ const RegistroAnimalScreen = () => {
       <View style={styles.container}>
         <View style={styles.formContainer}>
           <TouchableOpacity onPress={seleccionarImagen} style={styles.imageContainer}>
-            <Image source={require('../../assets/flecha.png')} style={styles.imageIcon} />
+            <Image source={require('../../assets/iconos/flecha.png')} style={styles.imageIcon} />
           </TouchableOpacity>
           {imagen && <Image source={{ uri: imagen }} style={styles.imagePreview} />}
 
@@ -303,10 +328,26 @@ const RegistroAnimalScreen = () => {
 
 
           <Text style={styles.label}>Código Único:</Text>
-          <TextInput placeholder="Código Único" value={codigo_idVaca} onChangeText={setCodigoIdVaca} style={styles.input} />
+          <TextInput
+            placeholder="Código Único"
+            value={codigo_idVaca}
+            onChangeText={(value) => {
+              // Solo acepta números
+              const numericValue = value.replace(/[^0-9]/g, '');
+              setCodigoIdVaca(numericValue);
+            }}
+            style={styles.input}
+            keyboardType="numeric"
+          />
 
-          <TouchableOpacity onPress={() => setMostrarFechaNacimiento(true)} style={styles.button}>
-            <Text style={styles.buttonText}>Seleccionar Fecha de Nacimiento</Text>
+          <Text style={styles.label}>Fecha de Nacimiento:</Text>
+          <TouchableOpacity onPress={() => setMostrarFechaNacimiento(true)}>
+            <TextInput
+              value={formatDate(fechaNacimiento)}
+              style={[styles.input, { fontWeight: fechaNacimiento ? 'regular' : 'normal' }]} // Negrita si hay una fecha seleccionada
+              editable={false}
+              pointerEvents="none"
+            />
           </TouchableOpacity>
           {mostrarFechaNacimiento && (
             <DateTimePicker
@@ -315,11 +356,13 @@ const RegistroAnimalScreen = () => {
               display="default"
               onChange={(event, selectedDate) => {
                 setMostrarFechaNacimiento(false);
-                if (selectedDate) setFechaNacimiento(selectedDate);
+                if (event.type === "set" && selectedDate) {
+                  setFechaNacimiento(selectedDate);
+                }
               }}
             />
           )}
-          <Text>Fecha Seleccionada: {fechaNacimiento.toDateString()}</Text>
+
 
           <Text style={styles.label}>Raza:</Text>
           <TextInput placeholder="Raza" value={raza} onChangeText={setRaza} style={styles.input} />
@@ -369,8 +412,14 @@ const RegistroAnimalScreen = () => {
                 ))}
               </Picker>
 
-              <TouchableOpacity onPress={() => setMostrarFechaEnfermedad(true)} style={styles.button}>
-                <Text style={styles.buttonText}>Seleccionar Fecha Diagnóstico</Text>
+              <Text style={styles.label}>Fecha de Diagnóstico:</Text>
+              <TouchableOpacity onPress={() => setMostrarFechaEnfermedad(true)}>
+                <TextInput
+                  value={formatDate(fechaEnfermedad)}
+                  style={[styles.input, { fontWeight: fechaEnfermedad ? 'bold' : 'normal' }]}
+                  editable={false}
+                  pointerEvents="none"
+                />
               </TouchableOpacity>
               {mostrarFechaEnfermedad && (
                 <DateTimePicker
@@ -379,11 +428,14 @@ const RegistroAnimalScreen = () => {
                   display="default"
                   onChange={(event, selectedDate) => {
                     setMostrarFechaEnfermedad(false);
-                    if (selectedDate) setFechaEnfermedad(selectedDate);
+                    if (event.type === "set" && selectedDate) {
+                      setFechaEnfermedad(selectedDate);
+                    }
                   }}
                 />
               )}
-              <Text>Fecha Diagnóstico Seleccionada: {fechaEnfermedad.toDateString()}</Text>
+
+
             </View>
           )}
 
@@ -418,8 +470,14 @@ const RegistroAnimalScreen = () => {
                     style={styles.input}
                   />
 
-                  <TouchableOpacity onPress={() => setMostrarFechaProducto(index)} style={styles.button}>
-                    <Text style={styles.buttonText}>Seleccionar Fecha de Aplicación</Text>
+                  <Text style={styles.label}>Fecha de Aplicación:</Text>
+                  <TouchableOpacity onPress={() => setMostrarFechaProducto(index)}>
+                    <TextInput
+                      value={formatDate(producto.fecha)}
+                      style={[styles.input, { fontWeight: producto.fecha ? 'bold' : 'normal' }]}
+                      editable={false}
+                      pointerEvents="none"
+                    />
                   </TouchableOpacity>
                   {mostrarFechaProducto === index && (
                     <DateTimePicker
@@ -427,8 +485,8 @@ const RegistroAnimalScreen = () => {
                       mode="date"
                       display="default"
                       onChange={(event, selectedDate) => {
-                        setMostrarFechaProducto(null);
-                        if (selectedDate) {
+                        setMostrarFechaProducto(false);
+                        if (event.type === "set" && selectedDate) {
                           const nuevosProductos = [...productos];
                           nuevosProductos[index].fecha = selectedDate;
                           setProductos(nuevosProductos);
@@ -436,7 +494,6 @@ const RegistroAnimalScreen = () => {
                       }}
                     />
                   )}
-                  <Text>Fecha de Aplicación Seleccionada: {producto.fecha.toDateString()}</Text>
 
                   <Text>¿Es un tratamiento?</Text>
                   <Picker
@@ -453,6 +510,7 @@ const RegistroAnimalScreen = () => {
                   </Picker>
                 </View>
               ))}
+
               <TouchableOpacity onPress={() => setProductos([...productos, { nombre: '', dosis: '', fecha: new Date(), es_tratamiento: false }])} style={styles.button}>
                 <Text style={styles.buttonText}>Añadir Producto</Text>
               </TouchableOpacity>
@@ -467,8 +525,14 @@ const RegistroAnimalScreen = () => {
           {mostrarBanos && (
             <View>
               <Text style={styles.label}>Fecha del Baño:</Text>
-              <TouchableOpacity onPress={() => setMostrarFechaBano(true)} style={styles.button}>
-                <Text style={styles.buttonText}>Seleccionar Fecha del Baño</Text>
+
+              <TouchableOpacity onPress={() => setMostrarFechaBano(true)}>
+                <TextInput
+                  value={formatDate(fechaBano)}
+                  style={[styles.input, { fontWeight: fechaBano ? 'bold' : 'normal' }]}
+                  editable={false}
+                  pointerEvents="none"
+                />
               </TouchableOpacity>
               {mostrarFechaBano && (
                 <DateTimePicker
@@ -477,13 +541,14 @@ const RegistroAnimalScreen = () => {
                   display="default"
                   onChange={(event, selectedDate) => {
                     setMostrarFechaBano(false);
-                    if (selectedDate) {
+                    if (event.type === "set" && selectedDate) {
                       setFechaBano(selectedDate);
                     }
                   }}
                 />
               )}
-              <Text>Fecha Seleccionada: {fechaBano.toDateString()}</Text>
+
+
 
               <Text style={styles.label}>Productos Utilizados:</Text>
               <TextInput
@@ -503,8 +568,13 @@ const RegistroAnimalScreen = () => {
           {mostrarProduccionLeche && (
             <View>
               <Text style={styles.label}>Fecha de Producción:</Text>
-              <TouchableOpacity onPress={() => setMostrarFechaProduccion(true)} style={styles.button}>
-                <Text style={styles.buttonText}>Seleccionar Fecha</Text>
+              <TouchableOpacity onPress={() => setMostrarFechaProduccion(true)}>
+                <TextInput
+                  value={formatDate(fechaProduccion)}
+                  style={[styles.input, { fontWeight: fechaProduccion ? 'bold' : 'normal' }]}
+                  editable={false}
+                  pointerEvents="none"
+                />
               </TouchableOpacity>
               {mostrarFechaProduccion && (
                 <DateTimePicker
@@ -513,11 +583,13 @@ const RegistroAnimalScreen = () => {
                   display="default"
                   onChange={(event, selectedDate) => {
                     setMostrarFechaProduccion(false);
-                    if (selectedDate) setFechaProduccion(selectedDate);
+                    if (event.type === "set" && selectedDate) {
+                      setFechaProduccion(selectedDate);
+                    }
                   }}
                 />
               )}
-              <Text>Fecha Seleccionada: {fechaProduccion.toDateString()}</Text>
+
 
               <Text style={styles.label}>Cantidad (L):</Text>
               <TextInput
@@ -546,8 +618,13 @@ const RegistroAnimalScreen = () => {
           {mostrarInseminaciones && (
             <View>
               <Text style={styles.label}>Fecha de Inseminación:</Text>
-              <TouchableOpacity onPress={() => setMostrarFechaInseminacion(true)} style={styles.button}>
-                <Text style={styles.buttonText}>Seleccionar Fecha</Text>
+              <TouchableOpacity onPress={() => setMostrarFechaInseminacion(true)}>
+                <TextInput
+                  value={formatDate(fechaInseminacion)}
+                  style={[styles.input, { fontWeight: fechaInseminacion ? 'bold' : 'normal' }]}
+                  editable={false}
+                  pointerEvents="none"
+                />
               </TouchableOpacity>
               {mostrarFechaInseminacion && (
                 <DateTimePicker
@@ -556,11 +633,14 @@ const RegistroAnimalScreen = () => {
                   display="default"
                   onChange={(event, selectedDate) => {
                     setMostrarFechaInseminacion(false);
-                    if (selectedDate) setFechaInseminacion(selectedDate);
+                    if (event.type === "set" && selectedDate) {
+                      setFechaInseminacion(selectedDate);
+                    }
                   }}
                 />
               )}
-              <Text>Fecha Seleccionada: {fechaInseminacion.toDateString()}</Text>
+
+
 
               <Text style={styles.label}>Tipo de Inseminación:</Text>
               <TextInput
@@ -781,6 +861,17 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     color: '#344e41',
   },
+
+
+  toggleButton: {
+    backgroundColor: '#6dbf47',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 15,
+    borderWidth: 1, // Añadir borde negro
+    borderColor: '#000000', // Color negro para el borde
+  },
+
 });
 
 export default RegistroAnimalScreen;
