@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     marginTop: 40, // Bajar un poco el icono
   },
   icon: {
-    width: 120, // Ajusta el tamaño del icono según tu preferencia
+    width: 120, // Ajusta el tamaño del icono según tu preferencias
     height: 120,
   },
 });
