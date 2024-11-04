@@ -1,6 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal, Pressable } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal, Pressable, Button, Alert } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
+import { captureRef } from 'react-native-view-shot';
+import { jsPDF } from 'jspdf';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { db } from '../../src/conection/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import GraficoEnfermedadesScreen from './GraficoEnfermedadesScreen';
@@ -10,6 +14,8 @@ const GraficoAnimalesScreen = () => {
   const [dataGrafico, setDataGrafico] = useState([]);
   const [detalleMes, setDetalleMes] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+  const chartRef = useRef();
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'animales'), (querySnapshot) => {
@@ -32,7 +38,6 @@ const GraficoAnimalesScreen = () => {
         color: getColor(index),
         legendFontColor: "#344e41",
         legendFontSize: 12,
-        
       })).filter(item => item.count > 0);
 
       setDataGrafico(nuevoDataGrafico);
@@ -66,6 +71,40 @@ const GraficoAnimalesScreen = () => {
     setModalVisible(true);
   };
 
+  const generarPDF = async () => {
+    try {
+      const uri = await captureRef(chartRef, {
+        format: "png",
+        quality: 1,
+        width: 800,
+        height: 600,
+      });
+
+      const doc = new jsPDF();
+      doc.text("Reporte de Animales por Mes", 10, 10);
+
+      const chartImage = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      doc.addImage(`data:image/png;base64,${chartImage}`, "PNG", 10, 20, 180, 120);
+
+      dataGrafico.forEach((item, index) => {
+        doc.text(`${item.name}: ${item.count} animales`, 10, 150 + index * 10);
+      });
+
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      const fileUri = `${FileSystem.documentDirectory}reporte_animales_por_mes.pdf`;
+
+      await FileSystem.writeAsStringAsync(fileUri, pdfBase64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      await Sharing.shareAsync(fileUri);
+    } catch (error) {
+      console.error("Error al generar o compartir el PDF: ", error);
+      Alert.alert('Error', 'No se pudo generar o compartir el PDF.');
+    }
+  };
+
   let screenWidth = Dimensions.get("window").width;
 
   return (
@@ -73,18 +112,19 @@ const GraficoAnimalesScreen = () => {
       <View style={styles.container}>
         <Text style={styles.title}>Registro de Animales por Mes</Text>
         <PieChart
+          ref={chartRef}
           data={dataGrafico}
           width={screenWidth - (screenWidth * 0.1)}
-          height={250} 
+          height={250}
           chartConfig={{
             backgroundGradientFrom: "rgba(255, 0, 0, 0.1)",
             backgroundGradientFromOpacity: 0.1,
-            backgroundGradientTo: "rgba(255, 0, 0, 0.1)", 
+            backgroundGradientTo: "rgba(255, 0, 0, 0.1)",
             backgroundGradientToOpacity: 0.1,
             color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`,
             strokeWidth: 2,
             barPercentage: 0.5,
-            fillShadowGradient: "#FF4444", 
+            fillShadowGradient: "#FF4444",
             fillShadowGradientOpacity: 1,
             labelColor: () => `#344e41`,
             style: {
@@ -113,6 +153,7 @@ const GraficoAnimalesScreen = () => {
             </TouchableOpacity>
           ))}
         </View>
+        <Button title="Generar PDF" onPress={generarPDF} color="#28a745" />
       </View>
 
       {detalleMes && (
@@ -139,6 +180,7 @@ const GraficoAnimalesScreen = () => {
 
       <GraficoEnfermedadesScreen/>
       <GraficoProduccionLecheScreen/>
+      
     </ScrollView>
   );
 };
@@ -148,10 +190,10 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#ffff',
-    borderWidth: 2, // Ancho del borde
-    borderColor: '#000000', // Color del borde
-    borderRadius: 16, // Bordes redondeados
-    margin: 8, // Espaciado alrededor del borde
+    borderWidth: 1,
+    borderColor: '#000000',
+    borderRadius: 16,
+    margin: 8,
   },
   title: {
     fontSize: 24,
@@ -162,18 +204,17 @@ const styles = StyleSheet.create({
   },
   leyendasContainer: {
     marginTop: 20,
-    alignItems: 'justify',
+    alignItems: 'flex-start',
   },
   leyendaItem: {
     flexDirection: 'row',
-    alignItems: 'justify',
+    alignItems: 'center',
     marginBottom: 10,
   },
   leyendaText: {
     fontSize: 16,
     color: '#344e41',
     marginLeft: 10,
-    
   },
   colorBox: {
     width: 20,
@@ -193,10 +234,7 @@ const styles = StyleSheet.create({
     padding: 35,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,

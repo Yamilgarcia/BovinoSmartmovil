@@ -1,6 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, Button, Alert } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
+import { captureRef } from 'react-native-view-shot';
+import { jsPDF } from 'jspdf';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { db } from '../../src/conection/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
@@ -9,6 +13,8 @@ const GraficoProduccionLecheScreen = () => {
     labels: [],
     datasets: [{ data: [] }]
   });
+
+  const chartRef = useRef();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,23 +50,63 @@ const GraficoProduccionLecheScreen = () => {
     fetchData();
   }, []);
 
+  const generarPDF = async () => {
+    try {
+      // Capturar el gráfico como imagen
+      const uri = await captureRef(chartRef, {
+        format: "png",
+        quality: 1,
+        width: 800, // Mayor ancho para mejor resolución
+        height: 600, // Mayor altura para mejor resolución
+      });
+
+      // Crear el PDF
+      const doc = new jsPDF();
+      doc.text("Reporte de Producción de Leche", 10, 10);
+
+      // Leer la imagen capturada y agregarla al PDF
+      const chartImage = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      doc.addImage(`data:image/png;base64,${chartImage}`, "PNG", 10, 20, 180, 120);
+
+      // Agregar datos de texto al PDF
+      dataGrafico.labels.forEach((label, index) => {
+        const produccion = dataGrafico.datasets[0].data[index];
+        doc.text(`${label}: ${produccion} litros`, 10, 150 + index * 10);
+      });
+
+      // Guardar y compartir el PDF
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      const fileUri = `${FileSystem.documentDirectory}reporte_produccion_leche.pdf`;
+
+      await FileSystem.writeAsStringAsync(fileUri, pdfBase64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      await Sharing.shareAsync(fileUri);
+    } catch (error) {
+      console.error("Error al generar o compartir el PDF: ", error);
+      Alert.alert('Error', 'No se pudo generar o compartir el PDF.');
+    }
+  };
+
   let screenWidth = Dimensions.get("window").width;
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
         <Text style={styles.title}>Producción de Leche por Animal</Text>
-        <View style={styles.chartContainer}>
+        <View style={styles.chartContainer} ref={chartRef}>
           <BarChart
             data={dataGrafico}
             width={screenWidth - (screenWidth * 0.1)}
             height={250}
             chartConfig={{
-              backgroundGradientFrom: "#d4edda", // Fondo verde claro
-              backgroundGradientTo: "#c3e6cb", // Fondo degradado verde
-              color: (opacity = 1) => `rgba(34, 139, 34, ${opacity})`, // Verde oscuro para las barras
-              labelColor: () => `#2d6a4f`, // Verde oscuro para las etiquetas
-              fillShadowGradient: "#28a745", // Sombra verde para las barras
+              backgroundGradientFrom: "#d4edda",
+              backgroundGradientTo: "#c3e6cb",
+              color: (opacity = 1) => `rgba(34, 139, 34, ${opacity})`,
+              labelColor: () => `#2d6a4f`,
+              fillShadowGradient: "#28a745",
               fillShadowGradientOpacity: 0.8,
               style: {
                 borderRadius: 16,
@@ -70,10 +116,11 @@ const GraficoProduccionLecheScreen = () => {
             style={{
               marginVertical: 8,
               borderRadius: 16,
-              backgroundColor: '#ffffff', // Fondo blanco dentro del gráfico
+              backgroundColor: '#ffffff',
             }}
           />
         </View>
+        <Button title="Generar PDF" onPress={generarPDF} color="#28a745" />
       </View>
     </ScrollView>
   );
@@ -82,16 +129,16 @@ const GraficoProduccionLecheScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-    backgroundColor: '#ffffff', // Fondo blanco para el contenedor principal
-    borderWidth: 1, // Ancho del borde
-    borderColor: '#000000', // Color del borde
-    borderRadius: 16, // Bordes redondeados
-    margin: 8, // Espacio exterior para que el borde no toque el límite de la pantalla
+    padding: 4,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#000000',
+    borderRadius: 16,
+    margin: 8,
   },
   chartContainer: {
-    padding: 4, // Espacio interior para que el borde no toque el gráfico directamente
-    backgroundColor: '#ffffff', // Fondo blanco para el contenedor del gráfico
+    padding: 4,
+    backgroundColor: '#ffffff',
     borderRadius: 12,
   },
   title: {
