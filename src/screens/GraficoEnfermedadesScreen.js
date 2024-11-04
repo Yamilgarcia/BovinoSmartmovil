@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'; 
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { db } from '../../src/conection/firebase';
@@ -53,29 +53,33 @@ const GraficoEnfermedadesScreen = () => {
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
-        <Text style={styles.title}>Conteo de Enfermedades</Text>
-        <BarChart
-          data={dataGrafico}
-          width={screenWidth - (screenWidth * 0.1)}
-          height={250}
-          chartConfig={{
-            backgroundGradientFrom: "#e5d4b5", // Fondo beige claro
-            backgroundGradientTo: "#f7f2e7", // Fondo beige más claro
-            color: (opacity = 1) => `rgba(139, 69, 19, ${opacity})`, // Marrón similar a madera para las barras
-            labelColor: () => `#3e3a3a`, // Gris oscuro para el texto
-            fillShadowGradient: "#8B4513", // Gradiente de sombra en marrón
-            fillShadowGradientOpacity: 0.8,
-            style: {
-              borderRadius: 16,
-            },
-          }}
-          verticalLabelRotation={30}
-          style={{
-            marginVertical: 8,
-            borderRadius: 16,
-            backgroundColor: '#fff8dc', // Fondo marrón claro para el contenedor
-          }}
-        />
+        <Text style={styles.title}>Enfermedades con más frecuencia</Text>
+        <ScrollView horizontal contentContainerStyle={{ flexGrow: 1 }}>
+          <View style={styles.chartContainer}>
+            <BarChart
+              data={dataGrafico}
+              width={Math.max(screenWidth, dataGrafico.labels.length * 60)} // Ajuste de ancho dinámico
+              height={Math.max(250, dataGrafico.datasets[0].data.length * 30)} // Ajuste de altura dinámico
+              chartConfig={{
+                backgroundGradientFrom: "#d4edda", // Verde claro
+                backgroundGradientTo: "#c3e6cb", // Verde más claro
+                color: (opacity = 1) => `rgba(34, 139, 34, ${opacity})`, // Verde oscuro para las barras
+                labelColor: () => `#2d6a4f`, // Verde oscuro para las etiquetas
+                fillShadowGradient: "#28a745", // Sombra verde para las barras
+                fillShadowGradientOpacity: 0.8,
+                style: {
+                  borderRadius: 16,
+                },
+              }}
+              verticalLabelRotation={10}
+              style={{
+                marginVertical: 8,
+                borderRadius: 12,
+                backgroundColor: '#f0fdf4', // Fondo verde muy claro dentro del gráfico
+              }}
+            />
+          </View>
+        </ScrollView>
       </View>
     </ScrollView>
   );
@@ -84,17 +88,26 @@ const GraficoEnfermedadesScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#e5d4b5', // Fondo beige claro para todo el contenedor
+    padding: 10,
+    backgroundColor: '#ffffff', // 
+    borderWidth: 1,
+    borderColor: '#000000', //
+    borderRadius: 12,
+    margin: 8,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#3e3a3a', // Gris oscuro para el texto principal
+    color: '#000000', //
     textAlign: 'center',
-    fontFamily: 'serif', // Usar una fuente con estilo más tradicional si es posible
+    fontFamily: 'serif',
   },
+  chartContainer: {
+    padding: 6,
+    backgroundColor: '#ffffff', // Fondo blanco para el contenedor del gráfico
+    borderRadius: 12,
+  }
 });
 
 export default GraficoEnfermedadesScreen;

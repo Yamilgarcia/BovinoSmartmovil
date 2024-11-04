@@ -50,28 +50,30 @@ const GraficoProduccionLecheScreen = () => {
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
         <Text style={styles.title}>Producción de Leche por Animal</Text>
-        <BarChart
-          data={dataGrafico}
-          width={screenWidth - (screenWidth * 0.1)}
-          height={250}
-          chartConfig={{
-            backgroundGradientFrom: "#e5d4b5",
-            backgroundGradientTo: "#f7f2e7",
-            color: (opacity = 1) => `rgba(34, 139, 34, ${opacity})`, // Verde oscuro para las barras
-            labelColor: () => `#3e3a3a`,
-            fillShadowGradient: "#228B22", // Sombra verde para las barras
-            fillShadowGradientOpacity: 0.8,
-            style: {
+        <View style={styles.chartContainer}>
+          <BarChart
+            data={dataGrafico}
+            width={screenWidth - (screenWidth * 0.1)}
+            height={250}
+            chartConfig={{
+              backgroundGradientFrom: "#d4edda", // Fondo verde claro
+              backgroundGradientTo: "#c3e6cb", // Fondo degradado verde
+              color: (opacity = 1) => `rgba(34, 139, 34, ${opacity})`, // Verde oscuro para las barras
+              labelColor: () => `#2d6a4f`, // Verde oscuro para las etiquetas
+              fillShadowGradient: "#28a745", // Sombra verde para las barras
+              fillShadowGradientOpacity: 0.8,
+              style: {
+                borderRadius: 16,
+              },
+            }}
+            verticalLabelRotation={30}
+            style={{
+              marginVertical: 8,
               borderRadius: 16,
-            },
-          }}
-          verticalLabelRotation={30}
-          style={{
-            marginVertical: 8,
-            borderRadius: 16,
-            backgroundColor: '#fff8dc',
-          }}
-        />
+              backgroundColor: '#ffffff', // Fondo blanco dentro del gráfico
+            }}
+          />
+        </View>
       </View>
     </ScrollView>
   );
@@ -80,8 +82,17 @@ const GraficoProduccionLecheScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#e5d4b5',
+    padding: 10,
+    backgroundColor: '#ffffff', // Fondo blanco para el contenedor principal
+    borderWidth: 1, // Ancho del borde
+    borderColor: '#000000', // Color del borde
+    borderRadius: 16, // Bordes redondeados
+    margin: 8, // Espacio exterior para que el borde no toque el límite de la pantalla
+  },
+  chartContainer: {
+    padding: 4, // Espacio interior para que el borde no toque el gráfico directamente
+    backgroundColor: '#ffffff', // Fondo blanco para el contenedor del gráfico
+    borderRadius: 12,
   },
   title: {
     fontSize: 24,
