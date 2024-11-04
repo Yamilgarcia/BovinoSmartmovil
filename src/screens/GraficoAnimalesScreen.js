@@ -9,6 +9,7 @@ import { db } from '../../src/conection/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import GraficoEnfermedadesScreen from './GraficoEnfermedadesScreen';
 import GraficoProduccionLecheScreen from './GraficoProduccionLecheScreen';
+import GraficoProductosAplicadosScreen from './GraficoProductosAplicadosScreen';
 
 const GraficoAnimalesScreen = () => {
   const [dataGrafico, setDataGrafico] = useState([]);
@@ -180,7 +181,8 @@ const GraficoAnimalesScreen = () => {
 
       <GraficoEnfermedadesScreen/>
       <GraficoProduccionLecheScreen/>
-      
+      <GraficoProductosAplicadosScreen/>
+
     </ScrollView>
   );
 };
