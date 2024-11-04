@@ -18,6 +18,7 @@ import PerfilEnfermedadScreen from './src/screens/PerfilEnfermedadScreen';
 import IAScreen from './src/screens/IAScreen'; // Asegúrate de que este archivo existe
 import RegistroProducto from './src/screens/RegistroProductoScreen';
 import GestionProductosScreen from './src/screens/GestionProductoScreen';
+import GraficoEnfermedadesScreen from './src/screens/GraficoEnfermedadesScreen';
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -45,6 +46,11 @@ export default function App() {
           options={{ title: 'Gestión de Animales' }}
         />
         <Stack.Screen
+          name="GraficoEnfermedades"
+          component={GraficoEnfermedadesScreen}
+          options={{ title: 'Grafico Enfermedades' }}
+        />
+        <Stack.Screen
           name="RegistroAnimal"
           component={RegistroAnimalScreen}
           options={{ title: 'Registrar Animal' }}
@@ -57,7 +63,7 @@ export default function App() {
         <Stack.Screen
           name="GraficoAnimales"
           component={GraficoAnimalesScreen}
-          options={{ title: 'Gráfico de Animales' }}
+          options={{ title: 'Gráficos' }}
         />
         <Stack.Screen
           name="GestionEnfermedades"

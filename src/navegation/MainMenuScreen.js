@@ -89,7 +89,11 @@ const MainMenuScreen = ({ navigation }) => {
           onPress={() => navigation.navigate('GraficoAnimales')}
         >
           <View style={styles.optionTextContainer}>
-            <Text style={styles.optionText}>Gráfico de Animales</Text>
+            <Text style={styles.optionText}>Gráficos</Text>
+            <Image
+              source={require('../../assets/iconos/graficos.jpeg')}
+              style={styles.icon2}
+            />
           </View>
         </TouchableOpacity>
 
@@ -165,9 +169,15 @@ const styles = StyleSheet.create({
     marginTop: 40, // Bajar un poco el icono
   },
   icon: {
-    width: 120, // Ajusta el tamaño del icono según tu preferencias
+    width: 120, // Ajusta el tamaño del icono según tu preferencia
     height: 120,
   },
+  icon2: {
+    width: 100, // Ajusta el tamaño del icono según tu preferencia
+    height: 100,
+  },
+
 });
+
 
 export default MainMenuScreen;

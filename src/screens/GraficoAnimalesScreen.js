@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal
 import { PieChart } from 'react-native-chart-kit';
 import { db } from '../../src/conection/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
+import GraficoEnfermedadesScreen from './GraficoEnfermedadesScreen';
+import GraficoProduccionLecheScreen from './GraficoProduccionLecheScreen';
 
 const GraficoAnimalesScreen = () => {
   const [dataGrafico, setDataGrafico] = useState([]);
@@ -140,6 +142,9 @@ const GraficoAnimalesScreen = () => {
           </View>
         </Modal>
       )}
+
+      <GraficoEnfermedadesScreen/>
+      <GraficoProduccionLecheScreen/>
     </ScrollView>
   );
 };
