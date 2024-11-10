@@ -1,7 +1,6 @@
-// firebase.js
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { getFirestore as realGetFirestore } from 'firebase/firestore';
+import { initializeAuth as realInitializeAuth, getReactNativePersistence } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Tu configuración de Firebase (encontrada en Firebase Console)
@@ -17,6 +16,10 @@ const firebaseConfig = {
 
 // Inicializa Firebase
 const app = initializeApp(firebaseConfig);
+
+// Si Jest está ejecutando el archivo, usará mocks en lugar de la implementación real
+const getFirestore = typeof jest === 'undefined' ? realGetFirestore : jest.fn(() => ({}));
+const initializeAuth = typeof jest === 'undefined' ? realInitializeAuth : jest.fn(() => ({}));
 
 // Inicializa Firestore
 const db = getFirestore(app);
