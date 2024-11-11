@@ -4,9 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import * as Font from 'expo-font';
-import EscanerQR from './src/screens/EscanerQR';
 
-
+// Importar las pantallas
 import MainMenuScreen from './src/navegation/MainMenuScreen';
 import GestionAnimalesScreen from './src/screens/GestionAnimalesScreen';
 import RegistroAnimalScreen from './src/screens/RegistroAnimalScreen';
@@ -15,20 +14,22 @@ import GraficoAnimalesScreen from './src/screens/GraficoAnimalesScreen';
 import GestionEnfermedadesScreen from './src/screens/GestionEnfermedadesScreen';
 import RegistroEnfermedadScreen from './src/screens/RegistroEnfermedadScreen';
 import PerfilEnfermedadScreen from './src/screens/PerfilEnfermedadScreen';
-import IAScreen from './src/screens/IAScreen'; // Asegúrate de que este archivo existe
-import RegistroProducto from './src/screens/RegistroProductoScreen';
-import GestionProductosScreen from './src/screens/GestionProductoScreen';
+import IAScreen from './src/screens/IAScreen';
+import EscanerQR from './src/screens/EscanerQR';
+import RegistroProductoScreen from './src/screens/RegistroProductoScreen';
+import GestionProductosScreen from './src/screens/GestionProductosScreen';
+import PerfilProductoScreen from './src/screens/PerfilProductoScreen'; // Asegúrate de que está bien importado
 import GraficoEnfermedadesScreen from './src/screens/GraficoEnfermedadesScreen';
+
 const Stack = createStackNavigator();
 
 export default function App() {
   useEffect(() => {
     const cargarFuentes = async () => {
       await Font.loadAsync({
-        'Junge': require('./assets/fonts/Junge-Regular.ttf'),
+        Junge: require('./assets/fonts/Junge-Regular.ttf'),
       });
     };
-
     cargarFuentes();
   }, []);
 
@@ -48,12 +49,14 @@ export default function App() {
         <Stack.Screen
           name="GraficoEnfermedades"
           component={GraficoEnfermedadesScreen}
-          options={{ title: 'Grafico Enfermedades' }}
+          options={{ title: 'Gráfico de Enfermedades' }}
         />
         <Stack.Screen
           name="RegistroAnimal"
           component={RegistroAnimalScreen}
-          options={{ title: 'Registrar Animal' }}
+          options={({ navigation }) => ({
+            header: () => <CustomHeader navigation={navigation} title="Registro de Animal" />,
+          })}
         />
         <Stack.Screen
           name="PerfilAnimal"
@@ -63,7 +66,7 @@ export default function App() {
         <Stack.Screen
           name="GraficoAnimales"
           component={GraficoAnimalesScreen}
-          options={{ title: 'Gráficos' }}
+          options={{ title: 'Gráficos de Animales' }}
         />
         <Stack.Screen
           name="GestionEnfermedades"
@@ -80,47 +83,45 @@ export default function App() {
           component={PerfilEnfermedadScreen}
           options={{ title: 'Detalles de la Enfermedad' }}
         />
-        {/* Añade la pantalla IA dentro del Stack.Navigator */}
         <Stack.Screen
           name="IAScreen"
           component={IAScreen}
-          options={{ title: 'IA BovinoSmart' }} // Nueva pantalla IA
+          options={{ title: 'IA BovinoSmart' }}
         />
-
         <Stack.Screen
           name="QRScreen"
           component={EscanerQR}
           options={{ title: 'Escáner QR' }}
         />
-
-
         <Stack.Screen
           name="RegistroProductoScreen"
-          component={RegistroProducto}
-          options={{ title: 'RegistroProductoScreen' }}
+          component={RegistroProductoScreen}
+          options={{ title: 'Registro de Producto' }}
         />
-
-
         <Stack.Screen
           name="GestionProductosScreen"
           component={GestionProductosScreen}
-          options={{ title: 'GestionProductosScreen' }}
+          options={{ title: 'Gestión de Productos' }}
         />
-
+        <Stack.Screen
+          name="PerfilProducto"
+          component={PerfilProductoScreen} // Agregamos PerfilProductoScreen al Stack
+          options={{ title: 'Perfil del Producto' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
 // Componente de encabezado personalizado
-const CustomHeader = ({ navigation }) => {
+const CustomHeader = ({ navigation, title }) => {
   return (
     <View style={styles.headerContainer}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <Image source={require('./assets/iconos/FlechaRetro.png')} style={styles.backIcon} />
       </TouchableOpacity>
       <View style={styles.oval} />
-      <Text style={styles.headerTitle}>Registro de Animal:</Text>
+      <Text style={styles.headerTitle}>{title}</Text>
     </View>
   );
 };

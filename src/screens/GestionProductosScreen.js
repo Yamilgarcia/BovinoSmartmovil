@@ -36,7 +36,7 @@ const GestionProductosScreen = ({ navigation }) => {
         <Text style={styles.searchTitle}>Buscar</Text>
         <TouchableOpacity 
           style={styles.addButton} 
-          onPress={() => navigation.navigate('RegistroProducto')} // Cambiado a 'RegistroProducto'
+          onPress={() => navigation.navigate('RegistroProductoScreen')} // Asegúrate de que el nombre coincide con el definido en App.js
         >
           <Text style={styles.addText}>+</Text>
         </TouchableOpacity>

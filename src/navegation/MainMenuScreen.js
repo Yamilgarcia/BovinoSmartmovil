@@ -10,7 +10,7 @@ const MainMenuScreen = ({ navigation }) => {
       await Font.loadAsync({
         'Arapey': require('../../assets/fonts/Arapey-Italic.ttf'),
       });
-      setFontsLoaded(true); // Indica que la fuente ha cargado
+      setFontsLoaded(true);
     };
     loadFonts();
   }, []);
@@ -105,15 +105,6 @@ const MainMenuScreen = ({ navigation }) => {
             <Text style={styles.optionText}>IA BovinoSmart</Text>
           </View>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.optionButton}
-          onPress={() => navigation.navigate('RegistroProductoScreen')}
-        >
-          <View style={styles.optionTextContainer}>
-            <Text style={styles.optionText}>Registro de Producto</Text>
-          </View>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -160,24 +151,22 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 16,
     textAlign: 'left',
-    fontFamily: 'Arapey', // Aplicar fuente Arapey
+    fontFamily: 'Arapey',
   },
   iconContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 40, // Bajar un poco el icono
+    marginTop: 40,
   },
   icon: {
-    width: 120, // Ajusta el tamaño del icono según tu preferencia
+    width: 120,
     height: 120,
   },
   icon2: {
-    width: 100, // Ajusta el tamaño del icono según tu preferencia
+    width: 100,
     height: 100,
   },
-
 });
-
 
 export default MainMenuScreen;

@@ -45,9 +45,9 @@ const RegistroEnfermedadScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Registrar Enfermedad</Text>
-      <TouchableOpacity onPress={seleccionarImagen} style={styles.imageContainer}>
+      <TouchableOpacity onPress={seleccionarImagen} style={styles.imageContainer} testID="imageButton">
         {imagen ? (
-          <Image source={{ uri: imagen }} style={styles.imagePreview} />
+          <Image source={{ uri: imagen }} style={styles.imagePreview} testID="imagePreview" />
         ) : (
           <Text style={styles.imagePlaceholder}>Seleccionar Imagen</Text>
         )}
@@ -57,26 +57,31 @@ const RegistroEnfermedadScreen = ({ navigation }) => {
         value={nombre}
         onChangeText={setNombre}
         style={styles.input}
+        testID="inputNombre"
       />
       <TextInput
         placeholder="Descripción"
         value={descripcion}
         onChangeText={setDescripcion}
         style={styles.input}
+        testID="inputDescripcion"
       />
       <TextInput
         placeholder="Síntomas"
         value={sintomas}
         onChangeText={setSintomas}
         style={styles.input}
+        testID="inputSintomas"
       />
       <TextInput
         placeholder="Modo de Transmisión"
         value={modoTransmision}
         onChangeText={setModoTransmision}
         style={styles.input}
+        testID="inputModoTransmision"
       />
-      <Button title="Registrar Enfermedad" onPress={registrarEnfermedad} />
+<Button title="Registrar Enfermedad" onPress={registrarEnfermedad} testID="registerButton" />
+
     </View>
   );
 };

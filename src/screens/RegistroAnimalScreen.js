@@ -320,7 +320,8 @@ const RegistroAnimalScreen = () => {
           <TextInput placeholder="Nombre del Animal" value={nombre} onChangeText={setNombre} style={styles.input} />
 
           <Text style={styles.label}>Género:</Text>
-          <Picker selectedValue={sexo} onValueChange={handleSexoChange} style={styles.input}>
+          <Picker selectedValue={sexo} onValueChange={handleSexoChange} style={styles.input}  testID="genderPicker" // Agrega este atributo
+          >
             <Picker.Item label="Seleccionar" value="" />
             <Picker.Item label="Macho" value="Macho" />
             <Picker.Item label="Hembra" value="Hembra" />
@@ -371,9 +372,10 @@ const RegistroAnimalScreen = () => {
           <TextInput placeholder="Observaciones" value={observaciones} onChangeText={setObservaciones} style={styles.input} />
 
           {/* Botón para mostrar/ocultar la sección de pesos */}
-          <TouchableOpacity onPress={() => setMostrarPesos(!mostrarPesos)} style={styles.toggleButton}>
-            <Text style={styles.buttonText}>{mostrarPesos ? 'Ocultar Pesos' : 'Mostrar Pesos'}</Text>
-          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setMostrarPesos(!mostrarPesos)} style={styles.toggleButton} testID="togglePesosButton">
+  <Text style={styles.buttonText}>{mostrarPesos ? 'Ocultar Pesos' : 'Mostrar Pesos'}</Text>
+</TouchableOpacity>
+
 
           {mostrarPesos && (
             <View>
@@ -389,7 +391,7 @@ const RegistroAnimalScreen = () => {
           )}
 
           <Text style={styles.label}>Estado:</Text>
-          <Picker selectedValue={estado} onValueChange={(itemValue) => setEstado(itemValue)} style={styles.input}>
+          <Picker selectedValue={estado} onValueChange={(itemValue) => setEstado(itemValue)} style={styles.input} testID="statusPicker">
             <Picker.Item label="Seleccione el Estado" value="" />
             <Picker.Item label="Activo" value="Activo" />
             <Picker.Item label="Enfermo" value="Enfermo" />
@@ -780,7 +782,7 @@ const RegistroAnimalScreen = () => {
 
 
 
-          <TouchableOpacity onPress={registrarAnimal} style={styles.button}>
+          <TouchableOpacity onPress={registrarAnimal} style={styles.button} testID="registerAnimalButton">
             <Text style={styles.buttonText}>Registrar Animal</Text>
           </TouchableOpacity>
         </View>
