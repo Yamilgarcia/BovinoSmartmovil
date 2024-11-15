@@ -1,405 +1,292 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Image, Button, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Image, ScrollView, Button, Alert } from 'react-native';
 import { db } from '../../src/conection/firebase';
-import { doc, getDoc, updateDoc, collection, addDoc, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker';
 
 const PerfilAnimalScreen = ({ route, navigation }) => {
     const { animalId } = route.params;
+
     const [animal, setAnimal] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [mostrarFechaNacimiento, setMostrarFechaNacimiento] = useState(false);
     const [fechaNacimiento, setFechaNacimiento] = useState(new Date());
+    const [mostrarFechaNacimiento, setMostrarFechaNacimiento] = useState(false);
+
+    const [baños, setBaños] = useState([]);
+    const [produccionLeche, setProduccionLeche] = useState([]);
+    const [inseminaciones, setInseminaciones] = useState([]);
     const [enfermedades, setEnfermedades] = useState([]);
-    const [enfermedadesDisponibles, setEnfermedadesDisponibles] = useState([]);
-    const [nuevaEnfermedad, setNuevaEnfermedad] = useState('');
-    const [fechaNuevaEnfermedad, setFechaNuevaEnfermedad] = useState(new Date());
-    const [mostrarFechaNuevaEnfermedad, setMostrarFechaNuevaEnfermedad] = useState(false);
+    const [productosAplicados, setProductosAplicados] = useState([]);
+    const [estadoReproductivo, setEstadoReproductivo] = useState({
+        ciclo_celo: '',
+        servicios_realizados: 0,
+        numero_gestaciones: 0,
+        partos_realizados: 0,
+        resultados_lactancia: '',
+        uso_programa_inseminacion: '',
+        resultado_prueba_reproductiva: '',
+    });
 
     useEffect(() => {
-        fetchAnimal();
-        fetchEnfermedades();
-        fetchEnfermedadesDisponibles();
+        fetchAnimalData();
     }, [animalId]);
 
-    const fetchAnimal = async () => {
+    const fetchAnimalData = async () => {
         try {
             const docRef = doc(db, 'animales', animalId);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                setAnimal({ id: animalId, ...docSnap.data() });
-                if (docSnap.data().fecha_nacimiento) {
-                    setFechaNacimiento(new Date(docSnap.data().fecha_nacimiento));
-                }
+                const animalData = docSnap.data();
+                setAnimal({ id: animalId, ...animalData });
+                if (animalData.fecha_nacimiento) setFechaNacimiento(new Date(animalData.fecha_nacimiento));
+
+                // Fetch related data
+                await Promise.all([
+                    fetchBaños(),
+                    fetchProduccionLeche(),
+                    fetchInseminaciones(),
+                    fetchEnfermedades(),
+                    fetchProductosAplicados(),
+                    fetchEstadoReproductivo(),
+                ]);
             } else {
-                console.log('No such document!');
+                console.log('El documento no existe.');
             }
         } catch (error) {
-            console.error('Error al obtener los datos del animal: ', error);
+            console.error('Error al obtener los datos del animal:', error);
         }
+    };
+
+    const fetchBaños = async () => {
+        const snapshot = await getDocs(collection(db, `animales/${animalId}/control_banos`));
+        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setBaños(data);
+    };
+
+    const fetchProduccionLeche = async () => {
+        const snapshot = await getDocs(collection(db, `animales/${animalId}/produccion_leche`));
+        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setProduccionLeche(data);
+    };
+
+    const fetchInseminaciones = async () => {
+        const snapshot = await getDocs(collection(db, `animales/${animalId}/inseminaciones`));
+        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setInseminaciones(data);
     };
 
     const fetchEnfermedades = async () => {
-        try {
-            const enfermedadesSnapshot = await getDocs(collection(db, `animales/${animalId}/enfermedades`));
-            const listaEnfermedades = [];
-
-            for (let enfermedadDoc of enfermedadesSnapshot.docs) {
-                const enfermedadData = enfermedadDoc.data();
-                const enfermedadRef = doc(db, 'enfermedades', enfermedadData.enfermedad);
-                const enfermedadSnap = await getDoc(enfermedadRef);
-
-                if (enfermedadSnap.exists()) {
-                    listaEnfermedades.push({
-                        id: enfermedadDoc.id,
-                        nombre: enfermedadSnap.data().nombre,
-                        fecha: enfermedadData.fecha,
-                    });
-                }
-            }
-
-            setEnfermedades(listaEnfermedades);
-        } catch (error) {
-            console.error('Error al obtener las enfermedades: ', error);
-        }
+        const snapshot = await getDocs(collection(db, `animales/${animalId}/enfermedades`));
+        const enfermedadesData = await Promise.all(snapshot.docs.map(async (docSnapshot) => {
+            const enfermedadData = docSnapshot.data();
+            const enfermedadRef = doc(db, 'enfermedades', enfermedadData.enfermedad);
+            const enfermedadSnap = await getDoc(enfermedadRef);
+            const nombreEnfermedad = enfermedadSnap.exists() ? enfermedadSnap.data().nombre : 'Desconocido';
+            return { id: docSnapshot.id, nombre: nombreEnfermedad, fecha: enfermedadData.fecha };
+        }));
+        setEnfermedades(enfermedadesData);
     };
 
-    const fetchEnfermedadesDisponibles = async () => {
-        try {
-            const enfermedadesSnap = await getDocs(collection(db, 'enfermedades'));
-            const listaEnfermedadesDisponibles = enfermedadesSnap.docs.map((doc) => ({
-                id: doc.id,
-                nombre: doc.data().nombre,
-            }));
-            setEnfermedadesDisponibles(listaEnfermedadesDisponibles);
-        } catch (error) {
-            console.error('Error al obtener las enfermedades disponibles: ', error);
-        }
+    const fetchProductosAplicados = async () => {
+        const snapshot = await getDocs(collection(db, `animales/${animalId}/productosAplicados`));
+        const data = snapshot.docs.map((docSnapshot) => {
+            const productoData = docSnapshot.data();
+            return {
+                id: docSnapshot.id,
+                nombre: productoData.nombre,
+                dosis: productoData.dosis,
+                fecha: productoData.fecha && productoData.fecha.toDate ? productoData.fecha.toDate() : null, // Conversión de Timestamp a Date
+            };
+        });
+        setProductosAplicados(data);
+    };
+
+
+
+    const fetchEstadoReproductivo = async () => {
+        const snapshot = await getDocs(collection(db, `animales/${animalId}/estado_reproductivo`));
+        if (!snapshot.empty) setEstadoReproductivo(snapshot.docs[0].data());
     };
 
     const seleccionarImagen = async () => {
-        let resultado = await ImagePicker.launchImageLibraryAsync({
+        const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
             quality: 1,
         });
 
-        if (!resultado.canceled && resultado.assets.length > 0) {
-            setAnimal({ ...animal, imagen: resultado.assets[0].uri });
+        if (!result.canceled && result.assets.length > 0) {
+            setAnimal({ ...animal, imagen: result.assets[0].uri });
         }
     };
 
+    const formatDate = (date) => {
+        if (!date) return '';
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
+
     const handleUpdateAnimal = async () => {
-        if (animal) {
-            try {
+        try {
+            if (animal) {
                 const docRef = doc(db, 'animales', animalId);
                 await updateDoc(docRef, {
-                    nombre: animal.nombre,
-                    codigo_idVaca: animal.codigo_idVaca,
-                    peso_nacimiento: parseFloat(animal.peso_nacimiento),
-                    peso_destete: parseFloat(animal.peso_destete),
-                    peso_actual: parseFloat(animal.peso_actual),
+                    ...animal,
                     fecha_nacimiento: fechaNacimiento.toISOString().split('T')[0],
-                    imagen: animal.imagen,
-                    observaciones: animal.observaciones,
+                    ...estadoReproductivo,
                 });
 
-                // Actualizar enfermedades existentes
-                for (let enf of enfermedades) {
-                    const enfermedadRef = doc(db, `animales/${animalId}/enfermedades`, enf.id);
-                    await updateDoc(enfermedadRef, {
-                        fecha: enf.fecha,
-                    });
-                }
-
-                // Agregar nueva enfermedad
-                if (nuevaEnfermedad) {
-                    await addDoc(collection(db, `animales/${animalId}/enfermedades`), {
-                        enfermedad: nuevaEnfermedad,
-                        fecha: fechaNuevaEnfermedad.toISOString().split('T')[0],
-                    });
-                    setNuevaEnfermedad('');
-                }
-
-                alert('Animal y enfermedades actualizados correctamente');
+                Alert.alert('Éxito', 'Animal actualizado correctamente.');
                 setIsEditing(false);
-                fetchEnfermedades(); // Actualiza la lista de enfermedades después de guardar
-            } catch (error) {
-                console.error('Error al actualizar el animal: ', error);
-                alert('Error al actualizar el animal');
+                fetchAnimalData();
             }
+        } catch (error) {
+            console.error('Error al actualizar el animal:', error);
+            Alert.alert('Error', 'No se pudo actualizar el animal.');
         }
     };
 
     return (
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-            <View style={styles.container}>
-                {animal ? (
-                    <>
-                        <View style={styles.header}>
-                            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                                <Text style={styles.backButtonText}>←</Text>
-                            </TouchableOpacity>
-                            <Text style={styles.title}>Información general del Animal:</Text>
-                        </View>
+        <ScrollView contentContainerStyle={styles.container}>
+            {animal ? (
+                <>
+                    <View style={styles.card}>
+                        <TouchableOpacity onPress={seleccionarImagen}>
+                            <Image source={{ uri: animal.imagen || 'https://via.placeholder.com/150' }} style={styles.image} />
+                        </TouchableOpacity>
 
-                        <View style={styles.card}>
-                            <TouchableOpacity onPress={seleccionarImagen}>
-                                <Image
-                                    source={{ uri: animal.imagen || 'https://via.placeholder.com/150' }}
-                                    style={styles.cardImage}
+                        {!isEditing ? (
+                            <>
+                                <Text style={styles.text}>Nombre: {animal.nombre}</Text>
+                                <Text style={styles.text}>Código: {animal.codigo_idVaca}</Text>
+                                <Text style={styles.text}>Sexo: {animal.sexo}</Text>
+                                <Text style={styles.text}>Fecha de Nacimiento: {formatDate(fechaNacimiento)}</Text>
+                                <Text style={styles.text}>Raza: {animal.raza}</Text>
+                                <Text style={styles.text}>Observaciones: {animal.observaciones}</Text>
+                                <Text style={styles.text}>Estado: {animal.estado}</Text>
+                                <Text style={styles.text}>Peso al Nacer: {animal.peso_nacimiento} kg</Text>
+                                <Text style={styles.text}>Peso al Destete: {animal.peso_destete} kg</Text>
+                                <Text style={styles.text}>Peso Actual: {animal.peso_actual} kg</Text>
+
+                                {animal.sexo === 'Macho' ? (
+                                    <>
+                                        <Text style={styles.subtitle}>Datos de Macho:</Text>
+                                        <Text style={styles.text}>Uso en Programa de Inseminación: {estadoReproductivo.uso_programa_inseminacion || 'N/A'}</Text>
+                                        <Text style={styles.text}>Resultado de la Prueba Reproductiva: {estadoReproductivo.resultado_prueba_reproductiva || 'N/A'}</Text>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Text style={styles.subtitle}>Datos de Hembra:</Text>
+                                        <Text style={styles.text}>Ciclo de Celo: {estadoReproductivo.ciclo_celo || 'N/A'}</Text>
+                                        <Text style={styles.text}>Servicios Realizados: {estadoReproductivo.servicios_realizados || 'N/A'}</Text>
+                                        <Text style={styles.text}>Número de Gestaciones: {estadoReproductivo.numero_gestaciones || 'N/A'}</Text>
+                                        <Text style={styles.text}>Partos Realizados: {estadoReproductivo.partos_realizados || 'N/A'}</Text>
+                                        <Text style={styles.text}>Resultados de Lactancia: {estadoReproductivo.resultados_lactancia || 'N/A'}</Text>
+                                    </>
+                                )}
+
+                                <Text style={styles.subtitle}>Historial de Baños:</Text>
+                                {baños.map((b) => (
+                                    <Text key={b.id}>- {b.fecha}: {b.productos_utilizados}</Text>
+                                ))}
+
+                                <Text style={styles.subtitle}>Producción de Leche:</Text>
+                                {produccionLeche.map((prod) => (
+                                    <Text key={prod.id}>- {formatDate(new Date(prod.fecha))}: {prod.cantidad}L ({prod.calidad})</Text>
+                                ))}
+
+                                <Text style={styles.subtitle}>Inseminaciones:</Text>
+                                {inseminaciones.map((ins) => (
+                                    <Text key={ins.id}>- {formatDate(new Date(ins.fecha_inseminacion))}: {ins.tipo_inseminacion} ({ins.resultado})</Text>
+                                ))}
+
+                                <Text style={styles.subtitle}>Enfermedades:</Text>
+                                {enfermedades.map((enf) => (
+                                    <Text key={enf.id}>- {enf.nombre} ({formatDate(new Date(enf.fecha))})</Text>
+                                ))}
+
+                                <Text style={styles.subtitle}>Productos Aplicados:</Text>
+                                {productosAplicados.map((prod) => (
+                                    <Text key={prod.id}>
+                                        - {prod.nombre} ({prod.dosis}) - {prod.fecha ? formatDate(prod.fecha) : 'Fecha no disponible'}
+                                    </Text>
+                                ))}
+
+
+                                <Button title="Editar" onPress={() => setIsEditing(true)} />
+                            </>
+                        ) : (
+                            <>
+                                {/* Edición de datos */}
+                                <TextInput
+                                    style={styles.input}
+                                    value={animal.nombre}
+                                    onChangeText={(text) => setAnimal({ ...animal, nombre: text })}
+                                    placeholder="Nombre"
                                 />
-                            </TouchableOpacity>
-
-                            {!isEditing ? (
-                                <>
-                                    <Text style={styles.infoText}>Nombre del Animal: {animal.nombre}</Text>
-                                    <Text style={styles.infoText}>Código: {animal.codigo_idVaca}</Text>
-                                    <Text style={styles.infoText}>Fecha de Nacimiento: {animal.fecha_nacimiento}</Text>
-                                    <Text style={styles.infoText}>Peso al Nacer: {animal.peso_nacimiento} KG</Text>
-                                    <Text style={styles.infoText}>Peso al Destete: {animal.peso_destete} KG</Text>
-                                    <Text style={styles.infoText}>Peso Actual: {animal.peso_actual} KG</Text>
-                                    <Text style={styles.infoText}>Observaciones: {animal.observaciones}</Text>
-
-                                    <View style={styles.section}>
-                                        <Text style={styles.subtitle}>Historial Médico:</Text>
-                                        {enfermedades.length > 0 ? (
-                                            enfermedades.map((enf, index) => (
-                                                <View key={index} style={styles.enfermedadCard}>
-                                                    <Text style={styles.enfermedadText}>Enfermedad: {enf.nombre}</Text>
-                                                    <Text style={styles.enfermedadText}>Fecha: {enf.fecha}</Text>
-                                                </View>
-                                            ))
-                                        ) : (
-                                            <Text style={styles.infoText}>No hay historial médico registrado.</Text>
-                                        )}
-                                    </View>
-
-                                    <Button title="Editar" onPress={() => setIsEditing(true)} />
-                                </>
-                            ) : (
-                                <>
-                                    <TextInput
-                                        style={styles.input}
-                                        value={animal.nombre}
-                                        onChangeText={(text) => setAnimal({ ...animal, nombre: text })}
-                                        placeholder="Nombre del Animal"
-                                    />
-                                    <TextInput
-                                        style={styles.input}
-                                        value={animal.codigo_idVaca}
-                                        onChangeText={(text) => setAnimal({ ...animal, codigo_idVaca: text })}
-                                        placeholder="Código ID Vaca"
-                                    />
-                                    <TouchableOpacity onPress={() => setMostrarFechaNacimiento(true)} style={styles.button}>
-                                        <Text style={styles.buttonText}>Seleccionar Fecha de Nacimiento</Text>
-                                    </TouchableOpacity>
-                                    {mostrarFechaNacimiento && (
-                                        <DateTimePicker
-                                            value={fechaNacimiento}
-                                            mode="date"
-                                            display="default"
-                                            onChange={(event, selectedDate) => {
-                                                setMostrarFechaNacimiento(false);
-                                                if (selectedDate) {
-                                                    setFechaNacimiento(selectedDate);
-                                                }
-                                            }}
-                                        />
-                                    )}
-                                    <Text>Fecha Seleccionada: {fechaNacimiento.toDateString()}</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        value={String(animal.peso_nacimiento)}
-                                        onChangeText={(text) => setAnimal({ ...animal, peso_nacimiento: text })}
-                                        placeholder="Peso al Nacer (KG)"
-                                        keyboardType="numeric"
-                                    />
-                                    <TextInput
-                                        style={styles.input}
-                                        value={String(animal.peso_destete)}
-                                        onChangeText={(text) => setAnimal({ ...animal, peso_destete: text })}
-                                        placeholder="Peso al Destete (KG)"
-                                        keyboardType="numeric"
-                                    />
-                                    <TextInput
-                                        style={styles.input}
-                                        value={String(animal.peso_actual)}
-                                        onChangeText={(text) => setAnimal({ ...animal, peso_actual: text })}
-                                        placeholder="Peso Actual (KG)"
-                                        keyboardType="numeric"
-                                    />
-                                    <TextInput
-                                        style={styles.input}
-                                        value={animal.observaciones}
-                                        onChangeText={(text) => setAnimal({ ...animal, observaciones: text })}
-                                        placeholder="Observaciones"
-                                    />
-
-                                    <View style={styles.section}>
-                                        <Text style={styles.subtitle}>Historial Médico:</Text>
-                                        {enfermedades.map((enf, index) => (
-                                            <View key={index} style={styles.enfermedadCard}>
-                                                <Text style={styles.enfermedadText}>Enfermedad: {enf.nombre}</Text>
-                                                <TouchableOpacity
-                                                    onPress={() => setMostrarFechaNuevaEnfermedad(index)}
-                                                    style={styles.button}
-                                                >
-                                                    <Text style={styles.buttonText}>Seleccionar Fecha</Text>
-                                                </TouchableOpacity>
-                                                {mostrarFechaNuevaEnfermedad === index && (
-                                                    <DateTimePicker
-                                                        value={new Date(enf.fecha)}
-                                                        mode="date"
-                                                        display="default"
-                                                        onChange={(event, selectedDate) => {
-                                                            if (selectedDate) {
-                                                                const nuevasEnfermedades = [...enfermedades];
-                                                                nuevasEnfermedades[index].fecha = selectedDate.toISOString().split('T')[0];
-                                                                setEnfermedades(nuevasEnfermedades);
-                                                            }
-                                                        }}
-                                                    />
-                                                )}
-                                                <Text>Fecha Seleccionada: {enf.fecha}</Text>
-                                            </View>
-                                        ))}
-
-                                        <Text style={styles.subtitle}>Agregar Nueva Enfermedad:</Text>
-                                        <Picker
-                                            selectedValue={nuevaEnfermedad}
-                                            onValueChange={(value) => setNuevaEnfermedad(value)}
-                                            style={styles.input}
-                                        >
-                                            <Picker.Item label="Seleccione una enfermedad" value="" />
-                                            {enfermedadesDisponibles.map((enf) => (
-                                                <Picker.Item key={enf.id} label={enf.nombre} value={enf.id} />
-                                            ))}
-                                        </Picker>
-                                        <TouchableOpacity onPress={() => setMostrarFechaNuevaEnfermedad(true)} style={styles.button}>
-                                            <Text style={styles.buttonText}>Seleccionar Fecha de Enfermedad</Text>
-                                        </TouchableOpacity>
-                                        {mostrarFechaNuevaEnfermedad && (
-                                            <DateTimePicker
-                                                value={fechaNuevaEnfermedad}
-                                                mode="date"
-                                                display="default"
-                                                onChange={(event, selectedDate) => {
-                                                    setMostrarFechaNuevaEnfermedad(false);
-                                                    if (selectedDate) {
-                                                        setFechaNuevaEnfermedad(selectedDate);
-                                                    }
-                                                }}
-                                            />
-                                        )}
-                                        <Text style={styles.selectedDateText}>
-                                            Fecha Seleccionada: {fechaNuevaEnfermedad.toISOString().split('T')[0]}
-                                        </Text>
-
-                                    </View>
-
-                                    <Button title="Guardar Cambios" onPress={handleUpdateAnimal} />
-                                    <Button title="Cancelar" onPress={() => setIsEditing(false)} />
-                                </>
-                            )}
-                        </View>
-                    </>
-                ) : (
-                    <Text>Cargando datos del animal...</Text>
-                )}
-            </View>
+                                {/* Resto de los campos editables */}
+                                <Button title="Guardar Cambios" onPress={handleUpdateAnimal} />
+                                <Button title="Cancelar" onPress={() => setIsEditing(false)} />
+                            </>
+                        )}
+                    </View>
+                </>
+            ) : (
+                <Text>Cargando datos...</Text>
+            )}
         </ScrollView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: '#f8f9fa',
         padding: 20,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    backButton: {
-        padding: 10,
-    },
-    backButtonText: {
-        fontSize: 30,
-        color: '#007BFF',
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        flex: 1,
-        textAlign: 'center',
     },
     card: {
-        backgroundColor: '#ffffff',
         padding: 20,
+        backgroundColor: '#fff',
         borderRadius: 10,
-        alignItems: 'center',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.8,
-        shadowRadius: 2,
-        elevation: 5,
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+        elevation: 3,
     },
-    cardImage: {
+    image: {
         width: 150,
         height: 150,
-        marginBottom: 20,
         borderRadius: 10,
+        marginBottom: 20,
     },
-    infoText: {
+    text: {
+        fontSize: 16,
+        marginBottom: 5,
+    },
+    subtitle: {
         fontSize: 18,
-        color: '#333',
-        marginVertical: 5,
+        fontWeight: 'bold',
+        marginTop: 15,
     },
     input: {
-        backgroundColor: '#f1f1f1',
-        width: '100%',
+        borderWidth: 1,
+        borderColor: '#ccc',
         padding: 10,
-        marginVertical: 5,
         borderRadius: 5,
+        marginBottom: 10,
     },
     button: {
         backgroundColor: '#007BFF',
         padding: 10,
         borderRadius: 5,
-        marginVertical: 15,
+        marginVertical: 10,
     },
     buttonText: {
         color: '#fff',
         textAlign: 'center',
-    },
-    section: {
-        width: '100%',
-        marginTop: 20,
-        marginBottom: 20,
-    },
-    subtitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginVertical: 10,
-        color: '#007BFF',
-        textAlign: 'center',
-    },
-    enfermedadCard: {
-        backgroundColor: '#e3f2fd',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 10,
-    },
-    enfermedadText: {
-        fontSize: 16,
-        color: '#007BFF',
     },
 });
 
