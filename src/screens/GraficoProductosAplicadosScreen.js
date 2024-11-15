@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, Button, Alert } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
+import { StackedBarChart } from 'react-native-chart-kit';
 import { captureRef } from 'react-native-view-shot';
 import { jsPDF } from 'jspdf';
 import * as FileSystem from 'expo-file-system';
@@ -11,7 +11,7 @@ import { collection, getDocs } from 'firebase/firestore';
 const GraficoProductosAplicadosScreen = () => {
   const [dataGrafico, setDataGrafico] = useState({
     labels: [],
-    datasets: [{ data: [] }]
+    data: []
   });
 
   const chartRef = useRef();
@@ -20,23 +20,21 @@ const GraficoProductosAplicadosScreen = () => {
     const fetchData = async () => {
       const conteoPorProducto = {};
 
-      // Obtener la lista de productos y contar cuántas veces aparece cada nombre
       const productosSnapshot = await getDocs(collection(db, 'productos'));
       productosSnapshot.forEach(productoDoc => {
         const productoData = productoDoc.data();
-        const nombreProducto = productoData.nombre; // Nombre del producto
-
-        // Contar cada aparición del producto por nombre
+        const nombreProducto = productoData.nombre;
+        
         conteoPorProducto[nombreProducto] = (conteoPorProducto[nombreProducto] || 0) + 1;
       });
 
-      // Crear datos para el gráfico de barras
+      // Convertir los datos en un formato adecuado para StackedBarChart
       const labels = Object.keys(conteoPorProducto);
-      const data = Object.values(conteoPorProducto);
+      const data = Object.values(conteoPorProducto).map((valor) => [valor]);
 
       setDataGrafico({
         labels,
-        datasets: [{ data }]
+        data
       });
     };
 
@@ -45,7 +43,6 @@ const GraficoProductosAplicadosScreen = () => {
 
   const generarPDF = async () => {
     try {
-      // Capturar el gráfico como imagen
       const uri = await captureRef(chartRef, {
         format: "png",
         quality: 1,
@@ -53,23 +50,19 @@ const GraficoProductosAplicadosScreen = () => {
         height: 600,
       });
 
-      // Crear el PDF
       const doc = new jsPDF();
       doc.text("Reporte de Productos Más Aplicados", 10, 10);
 
-      // Leer la imagen capturada y agregarla al PDF
       const chartImage = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
       doc.addImage(`data:image/png;base64,${chartImage}`, "PNG", 10, 20, 180, 120);
 
-      // Agregar datos de texto al PDF
       dataGrafico.labels.forEach((label, index) => {
-        const aplicaciones = dataGrafico.datasets[0].data[index];
+        const aplicaciones = dataGrafico.data[index][0];
         doc.text(`${label}: ${aplicaciones} veces registrado`, 10, 150 + index * 10);
       });
 
-      // Guardar y compartir el PDF
       const pdfBase64 = doc.output('datauristring').split(',')[1];
       const fileUri = `${FileSystem.documentDirectory}reporte_productos_mas_aplicados.pdf`;
 
@@ -90,26 +83,27 @@ const GraficoProductosAplicadosScreen = () => {
       <View style={styles.container}>
         <Text style={styles.title}>Productos Más Aplicados</Text>
         <View ref={chartRef} style={styles.chartContainer}>
-          <BarChart
-            data={dataGrafico}
+          <StackedBarChart
+            data={{
+              labels: dataGrafico.labels,
+              data: dataGrafico.data,
+              barColors: ["#2d6a4f"]
+            }}
             width={screenWidth - (screenWidth * 0.1)}
             height={250}
             chartConfig={{
-                backgroundGradientFrom: "#d4edda",
+                backgroundGradientFrom: "#ffff",
                 backgroundGradientTo: "#c3e6cb",
                 color: (opacity = 1) => `rgba(34, 139, 34, ${opacity})`,
                 labelColor: () => `#2d6a4f`,
-                fillShadowGradient: "#28a745",
-                fillShadowGradientOpacity: 0.8,
                 style: {
                   borderRadius: 16,
-              },
+                },
             }}
-            verticalLabelRotation={30}
             style={{
               marginVertical: 8,
               borderRadius: 16,
-              backgroundColor: '#ffffff', // Fondo blanco del contenedor del gráfico
+              backgroundColor: '#ffffff',
             }}
           />
         </View>
@@ -140,8 +134,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: '#000000',
     textAlign: 'center',
+    fontFamily: 'serif'
   },
 });
 
 export default GraficoProductosAplicadosScreen;
-

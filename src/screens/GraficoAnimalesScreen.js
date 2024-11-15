@@ -201,8 +201,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#344e41',
+    color: '#000000',
     textAlign: 'center',
+    fontFamily: 'serif'
   },
   leyendasContainer: {
     marginTop: 20,

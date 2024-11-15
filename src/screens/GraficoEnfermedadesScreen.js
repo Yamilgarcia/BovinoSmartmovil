@@ -107,8 +107,8 @@ const GraficoEnfermedadesScreen = () => {
               width={Math.max(screenWidth, dataGrafico.labels.length * 60)} // Ajuste de ancho dinámico
               height={Math.max(250, dataGrafico.datasets[0].data.length * 30)} // Ajuste de altura dinámico
               chartConfig={{
-                backgroundGradientFrom: "#d4edda",
-                backgroundGradientTo: "#c3e6cb",
+                backgroundGradientFrom: "#ffff",
+                backgroundGradientTo: "#fff",
                 color: (opacity = 1) => `rgba(34, 139, 34, ${opacity})`,
                 labelColor: () => `#2d6a4f`,
                 fillShadowGradient: "#28a745",
