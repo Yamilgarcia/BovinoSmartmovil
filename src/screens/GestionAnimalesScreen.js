@@ -1,12 +1,13 @@
-// src/screens/GestionAnimalesScreen.js
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput } from 'react-native';
 import { db } from '../../src/conection/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 
 const GestionAnimalesScreen = ({ navigation }) => {
   const [animales, setAnimales] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredAnimales, setFilteredAnimales] = useState([]);
 
   // Función para obtener la lista de animales desde Firestore
   const fetchAnimales = async () => {
@@ -17,6 +18,7 @@ const GestionAnimalesScreen = ({ navigation }) => {
         ...doc.data(),
       }));
       setAnimales(animalesList);
+      setFilteredAnimales(animalesList); // Inicialmente, todos los animales se muestran
     } catch (error) {
       console.error("Error al obtener los animales: ", error);
     }
@@ -29,15 +31,40 @@ const GestionAnimalesScreen = ({ navigation }) => {
     }, [])
   );
 
+  // Función para filtrar los animales según la consulta de búsqueda
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.trim() === '') {
+      setFilteredAnimales(animales);
+    } else {
+      const lowerCaseQuery = query.toLowerCase();
+      const filtered = animales.filter(animal =>
+        animal.codigo_idVaca?.toLowerCase().includes(lowerCaseQuery) ||
+        animal.nombre?.toLowerCase().includes(lowerCaseQuery) ||
+        animal.raza?.toLowerCase().includes(lowerCaseQuery) ||
+        animal.pesos?.toString().includes(lowerCaseQuery) ||
+        (animal.estado?.toLowerCase().includes(lowerCaseQuery)) ||
+        animal.enfermedades?.some(enfermedad => enfermedad.toLowerCase().includes(lowerCaseQuery))
+      );
+      setFilteredAnimales(filtered);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Gestión de Animal:</Text>
+      <Text style={styles.title}>Gestión de Animales</Text>
 
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>←</Text>
+    
         </TouchableOpacity>
         <Text style={styles.searchTitle}>Buscar</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar por ID, nombre, raza, etc."
+          value={searchQuery}
+          onChangeText={handleSearch}
+        />
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => navigation.navigate('RegistroAnimal')}
@@ -47,8 +74,8 @@ const GestionAnimalesScreen = ({ navigation }) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.cardsContainer}>
-        {animales.length > 0 ? (
-          animales.map((animal) => (
+        {filteredAnimales.length > 0 ? (
+          filteredAnimales.map((animal) => (
             <TouchableOpacity
               key={animal.id}
               style={styles.card}
@@ -58,11 +85,14 @@ const GestionAnimalesScreen = ({ navigation }) => {
                 source={{ uri: animal.imagen || 'https://via.placeholder.com/100' }}
                 style={styles.cardImage}
               />
-              <Text style={styles.cardTitle}>{animal.nombre}:</Text>
+              <Text style={styles.cardTitle}>{animal.nombre || 'Sin nombre'}</Text>
+              <Text style={styles.cardDetails}>ID: {animal.codigo_idVaca}</Text>
+              <Text style={styles.cardDetails}>Raza: {animal.raza}</Text>
+              <Text style={styles.cardDetails}>Activo: {animal.estado}</Text>
             </TouchableOpacity>
           ))
         ) : (
-          <Text>No hay animales registrados.</Text>
+          <Text>No hay animales registrados o no coinciden con la búsqueda.</Text>
         )}
       </ScrollView>
     </View>
@@ -87,12 +117,20 @@ const styles = StyleSheet.create({
   },
   backButton: {
     fontSize: 30,
-    marginRight: 20,
+    marginRight: 10,
   },
   searchTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  searchInput: {
     flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 10,
+    marginHorizontal: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   addButton: {
     backgroundColor: '#6dbf47',
@@ -128,6 +166,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  cardDetails: {
+    color: '#fff',
+    fontSize: 12,
   },
 });
 
