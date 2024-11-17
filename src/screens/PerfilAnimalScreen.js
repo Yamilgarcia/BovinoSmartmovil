@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-    TextInput,
-    Image,
-    ScrollView,
-    Alert,
-    Button,
-} from 'react-native';
+import {View,Text,TouchableOpacity,StyleSheet,TextInput,Image,ScrollView,Alert,Button,} from 'react-native';
 import { db } from '../../src/conection/firebase';
 import { doc, getDoc, updateDoc, collection, getDocs, writeBatch, addDoc, deleteDoc } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
