@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5'; // Importar la librería de íconos
 import { db } from '../../src/conection/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
@@ -9,43 +10,48 @@ const GestionAnimalesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredAnimales, setFilteredAnimales] = useState([]);
 
-  // Función para obtener la lista de animales desde Firestore
   const fetchAnimales = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, 'animales'));
-      const animalesList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setAnimales(animalesList);
-      setFilteredAnimales(animalesList); // Inicialmente, todos los animales se muestran
+      const animalesList = querySnapshot.docs.map(async (doc) => {
+        const data = doc.data();
+        const enfermedadesSnapshot = await getDocs(collection(db, `animales/${doc.id}/enfermedades`));
+        const enfermedades = enfermedadesSnapshot.docs.map((enfermedadDoc) => enfermedadDoc.data());
+        return { id: doc.id, ...data, enfermedades };
+      });
+      const animalesResolved = await Promise.all(animalesList);
+      setAnimales(animalesResolved);
+      setFilteredAnimales(animalesResolved);
     } catch (error) {
       console.error("Error al obtener los animales: ", error);
     }
   };
 
-  // Actualiza la lista de animales cada vez que esta pantalla recibe el foco
   useFocusEffect(
     useCallback(() => {
       fetchAnimales();
     }, [])
   );
 
-  // Función para filtrar los animales según la consulta de búsqueda
   const handleSearch = (query) => {
     setSearchQuery(query);
     if (query.trim() === '') {
       setFilteredAnimales(animales);
     } else {
       const lowerCaseQuery = query.toLowerCase();
-      const filtered = animales.filter(animal =>
-        animal.codigo_idVaca?.toLowerCase().includes(lowerCaseQuery) ||
-        animal.nombre?.toLowerCase().includes(lowerCaseQuery) ||
-        animal.raza?.toLowerCase().includes(lowerCaseQuery) ||
-        animal.pesos?.toString().includes(lowerCaseQuery) ||
-        (animal.estado?.toLowerCase().includes(lowerCaseQuery)) ||
-        animal.enfermedades?.some(enfermedad => enfermedad.toLowerCase().includes(lowerCaseQuery))
-      );
+      const filtered = animales.filter((animal) => {
+        const matchesBasicFields =
+          animal.codigo_idVaca?.toLowerCase().includes(lowerCaseQuery) ||
+          animal.nombre?.toLowerCase().includes(lowerCaseQuery) ||
+          animal.raza?.toLowerCase().includes(lowerCaseQuery) ||
+          animal.estado?.toLowerCase().includes(lowerCaseQuery);
+
+        const matchesEnfermedades = animal.enfermedades?.some((enfermedad) =>
+          enfermedad.nombre?.toLowerCase().includes(lowerCaseQuery)
+        );
+
+        return matchesBasicFields || matchesEnfermedades;
+      });
       setFilteredAnimales(filtered);
     }
   };
@@ -55,13 +61,10 @@ const GestionAnimalesScreen = ({ navigation }) => {
       <Text style={styles.title}>Gestión de Animales</Text>
 
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-    
-        </TouchableOpacity>
-        <Text style={styles.searchTitle}>Buscar</Text>
+       
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar por ID, nombre, raza, etc."
+          placeholder="Buscar por ID, nombre, raza, enfermedad, etc."
           value={searchQuery}
           onChangeText={handleSearch}
         />
@@ -70,6 +73,14 @@ const GestionAnimalesScreen = ({ navigation }) => {
           onPress={() => navigation.navigate('RegistroAnimal')}
         >
           <Text style={styles.addText}>+</Text>
+        </TouchableOpacity>
+
+        {/* Botón para el Informe Médico */}
+        <TouchableOpacity
+          style={styles.reportButton}
+          onPress={() => navigation.navigate('InformeMedicoScreen')}
+        >
+          <Icon name="file-medical" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -88,7 +99,7 @@ const GestionAnimalesScreen = ({ navigation }) => {
               <Text style={styles.cardTitle}>{animal.nombre || 'Sin nombre'}</Text>
               <Text style={styles.cardDetails}>ID: {animal.codigo_idVaca}</Text>
               <Text style={styles.cardDetails}>Raza: {animal.raza}</Text>
-              <Text style={styles.cardDetails}>Activo: {animal.estado}</Text>
+              <Text style={styles.cardDetails}>Estado: {animal.estado}</Text>
             </TouchableOpacity>
           ))
         ) : (
@@ -117,11 +128,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     fontSize: 30,
-    marginRight: 10,
-  },
-  searchTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    marginRight: 20,
   },
   searchInput: {
     flex: 1,
@@ -143,6 +150,15 @@ const styles = StyleSheet.create({
   addText: {
     color: '#fff',
     fontSize: 24,
+  },
+  reportButton: {
+    backgroundColor: '#3b82f6', // Azul para diferenciar
+    borderRadius: 50,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
   },
   cardsContainer: {
     flexDirection: 'row',
