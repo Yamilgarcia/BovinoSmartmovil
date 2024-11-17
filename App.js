@@ -20,6 +20,9 @@ import RegistroProductoScreen from './src/screens/RegistroProductoScreen';
 import GestionProductosScreen from './src/screens/GestionProductosScreen';
 import PerfilProductoScreen from './src/screens/PerfilProductoScreen'; // Asegúrate de que está bien importado
 import GraficoEnfermedadesScreen from './src/screens/GraficoEnfermedadesScreen';
+import InformeMedicoScreen from './src/screens/InformeMedicoScreen';
+import ResultadoInforme from './src/screens/ResultadoInforme';
+
 
 const Stack = createStackNavigator();
 
@@ -108,6 +111,20 @@ export default function App() {
           component={PerfilProductoScreen} // Agregamos PerfilProductoScreen al Stack
           options={{ title: 'Perfil del Producto' }}
         />
+
+        <Stack.Screen
+          name="InformeMedicoScreen"
+          component={InformeMedicoScreen}
+          options={{ title: 'Informe Médico' }}
+        />
+        <Stack.Screen
+          name="ResultadoInforme"
+          component={ResultadoInforme}
+          options={{ title: 'Resultado del Informe' }}
+        />
+
+
+
       </Stack.Navigator>
     </NavigationContainer>
   );

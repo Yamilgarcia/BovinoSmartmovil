@@ -1,57 +1,83 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { PDFDownloadLink, Document, Page, Text as PdfText, StyleSheet as PdfStyles } from '@react-pdf/renderer';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 
-const InformeMedicoPdf = ({ data }) => (
-  <Document>
-    <Page style={styles.page}>
-      <PdfText style={styles.header}>Informe Médico</PdfText>
-      <PdfText>Animal: {data.nombre} (ID: {data.codigo_idVaca})</PdfText>
-      <PdfText>Raza: {data.raza}</PdfText>
-      <PdfText>Estado: {data.estado}</PdfText>
-      <PdfText>Enfermedades:</PdfText>
-      {data.enfermedades.map((enfermedad, index) => (
-        <PdfText key={index}>
-          - {enfermedad.nombre} (Fecha: {enfermedad.fecha})
-        </PdfText>
-      ))}
-    </Page>
-  </Document>
-);
+const ResultadoInforme = ({ route }) => {
+  const { animal, enfermedadesDetalladas } = route.params;
 
-const ResultadoInforme = ({ route, navigation }) => {
-  const { animalId, fechaInicio, fechaFin, enfermedad } = route.params;
+  if (!animal) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>No se proporcionaron datos del animal.</Text>
+      </View>
+    );
+  }
 
-  // Aquí deberías filtrar los datos del animal según los parámetros recibidos
-  const datosFiltrados = {
-    nombre: 'Ejemplo Animal',
-    codigo_idVaca: animalId || '1234',
-    raza: 'Holstein',
-    estado: 'Activo',
-    enfermedades: [
-      { nombre: 'Enfermedad 1', fecha: '2024-01-01' },
-      { nombre: 'Enfermedad 2', fecha: '2024-02-01' },
-    ],
+  const generatePdf = async () => {
+    const htmlContent = `
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: #6dbf47; }
+            ul { list-style-type: none; padding: 0; }
+            li { margin-bottom: 10px; }
+          </style>
+        </head>
+        <body>
+          <h1>Informe Médico</h1>
+          <h2>${animal.nombre} (ID: ${animal.codigo_idVaca})</h2>
+          <p><strong>Raza:</strong> ${animal.raza}</p>
+          <p><strong>Estado:</strong> ${animal.estado}</p>
+          <h3>Enfermedades:</h3>
+          <ul>
+            ${
+              enfermedadesDetalladas && enfermedadesDetalladas.length > 0
+                ? enfermedadesDetalladas
+                    .map(
+                      (enf) => `<li>${enf.nombre} - Fecha: ${enf.fecha}</li>`
+                    )
+                    .join('')
+                : '<li>No tiene enfermedades registradas.</li>'
+            }
+          </ul>
+        </body>
+      </html>
+    `;
+
+    try {
+      const { uri } = await Print.printToFileAsync({ html: htmlContent });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri);
+      } else {
+        alert('No se puede compartir el PDF en este dispositivo.');
+      }
+    } catch (error) {
+      console.error('Error al generar o compartir el PDF:', error);
+      alert('Error al generar o compartir el PDF.');
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Resultado del Informe Médico</Text>
-      <PDFDownloadLink
-        document={<InformeMedicoPdf data={datosFiltrados} />}
-        fileName={`informe_medico_${animalId || 'desconocido'}.pdf`}
-      >
-        {({ loading }) => (
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>
-              {loading ? 'Generando PDF...' : 'Descargar Informe'}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </PDFDownloadLink>
-
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>Volver</Text>
+      <Text style={styles.title}>Resultado del Informe</Text>
+      <Text style={styles.label}>Nombre: {animal.nombre}</Text>
+      <Text style={styles.label}>ID: {animal.codigo_idVaca}</Text>
+      <Text style={styles.label}>Raza: {animal.raza}</Text>
+      <Text style={styles.label}>Estado: {animal.estado}</Text>
+      <Text style={styles.label}>Enfermedades:</Text>
+      {enfermedadesDetalladas && enfermedadesDetalladas.length > 0 ? (
+        enfermedadesDetalladas.map((enf, index) => (
+          <Text key={index} style={styles.enfermedadItem}>
+            - {enf.nombre} (Fecha: {enf.fecha})
+          </Text>
+        ))
+      ) : (
+        <Text>No tiene enfermedades registradas.</Text>
+      )}
+      <TouchableOpacity style={styles.button} onPress={generatePdf}>
+        <Text style={styles.buttonText}>Generar y Compartir PDF</Text>
       </TouchableOpacity>
     </View>
   );
@@ -64,39 +90,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+  },
+  label: {
+    fontSize: 18,
+    marginBottom: 10,
+  },
+  enfermedadItem: {
+    fontSize: 16,
+    marginBottom: 5,
   },
   button: {
     backgroundColor: '#6dbf47',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  backButton: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: '#ccc',
-    borderRadius: 5,
-  },
-  backButtonText: {
-    textAlign: 'center',
-    color: '#000',
-  },
-  page: {
-    padding: 30,
-  },
-  header: {
-    fontSize: 20,
-    marginBottom: 10,
-    textAlign: 'center',
+  errorText: {
+    color: 'red',
+    fontSize: 18,
   },
 });
 
