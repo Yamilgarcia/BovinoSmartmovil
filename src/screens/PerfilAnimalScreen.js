@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {View,Text,TouchableOpacity,StyleSheet,TextInput,Image,ScrollView,Alert,Button,} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Image, ScrollView, Alert, Button, } from 'react-native';
 import { db } from '../../src/conection/firebase';
 import { doc, getDoc, updateDoc, collection, getDocs, writeBatch, addDoc, deleteDoc } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
@@ -33,6 +33,26 @@ const PerfilAnimalScreen = ({ route }) => {
     const [enfermedadesDisponibles, setEnfermedadesDisponibles] = useState([]);
     const [mostrarFechaEnfermedad, setMostrarFechaEnfermedad] = useState(false);
     const [editingFechaId, setEditingFechaId] = useState(null);
+    const [nuevaEnfermedad, setNuevaEnfermedad] = useState({
+        enfermedad: '',
+        fecha: new Date(),
+    });
+
+
+    const handleAgregarEnfermedad = async () => {
+        try {
+            await addDoc(collection(db, `animales/${animalId}/enfermedades`), {
+                enfermedad: nuevaEnfermedad.enfermedad,
+                fecha: nuevaEnfermedad.fecha.toISOString().split('T')[0], // Fecha en formato YYYY-MM-DD
+            });
+            Alert.alert('Éxito', 'Enfermedad registrada correctamente.');
+            setNuevaEnfermedad({ enfermedad: '', fecha: new Date() });
+            fetchEnfermedades(); // Recargar las enfermedades registradas
+        } catch (error) {
+            console.error('Error al registrar la enfermedad:', error);
+            Alert.alert('Error', 'No se pudo registrar la enfermedad.');
+        }
+    };
 
     // Pesos
     const [pesoNacimiento, setPesoNacimiento] = useState('');
@@ -845,6 +865,43 @@ const PerfilAnimalScreen = ({ route }) => {
                             <Picker.Item label="Vendido" value="Vendido" />
                         </Picker>
                     </View>
+
+
+                    <View style={styles.card}>
+                        <Text style={styles.subtitle}>Agregar Enfermedad</Text>
+                        <Picker
+                            selectedValue={nuevoProducto.nombre}
+                            onValueChange={(itemValue) => setNuevaEnfermedad({ ...nuevaEnfermedad, enfermedad: itemValue })}
+                            style={styles.input}
+                        >
+                            <Picker.Item label="Seleccionar Enfermedad" value="" />
+                            {enfermedadesDisponibles.map((enfermedad) => (
+                                <Picker.Item key={enfermedad.id} label={enfermedad.nombre} value={enfermedad.id} />
+                            ))}
+                        </Picker>
+                        <TouchableOpacity onPress={() => setMostrarFechaEnfermedad(true)}>
+                            <TextInput
+                                value={formatDate(nuevaEnfermedad.fecha)}
+                                style={styles.input}
+                                editable={false}
+                                placeholder="Fecha de detección"
+                            />
+                        </TouchableOpacity>
+                        {mostrarFechaEnfermedad && (
+                            <DateTimePicker
+                                value={nuevaEnfermedad.fecha}
+                                mode="date"
+                                display="default"
+                                onChange={(event, selectedDate) => {
+                                    setMostrarFechaEnfermedad(false);
+                                    if (selectedDate) setNuevaEnfermedad({ ...nuevaEnfermedad, fecha: selectedDate });
+                                }}
+                            />
+                        )}
+                        <Button title="Agregar Enfermedad" onPress={handleAgregarEnfermedad} />
+                    </View>
+
+
 
                     {/* Enfermedades */}
                     <View style={styles.card}>
