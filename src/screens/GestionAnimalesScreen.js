@@ -1,11 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput } from 'react-native';
 import { db } from '../../src/conection/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 
 const GestionAnimalesScreen = ({ navigation }) => {
   const [animales, setAnimales] = useState([]);
+  const [busqueda, setBusqueda] = useState(''); // Estado para la búsqueda
+  const [animalesFiltrados, setAnimalesFiltrados] = useState([]);
 
   const fetchAnimales = async () => {
     try {
@@ -15,9 +17,19 @@ const GestionAnimalesScreen = ({ navigation }) => {
         ...doc.data(),
       }));
       setAnimales(animalesList);
+      setAnimalesFiltrados(animalesList); // Inicialmente, mostrar todos
     } catch (error) {
-      console.error("Error al obtener los animales: ", error);
+      console.error('Error al obtener los animales: ', error);
     }
+  };
+
+  const handleBusqueda = (texto) => {
+    setBusqueda(texto);
+    const filtrados = animales.filter((animal) =>
+      animal.nombre?.toLowerCase().includes(texto.toLowerCase()) ||
+      animal.codigo_idVaca?.toLowerCase().includes(texto.toLowerCase())
+    );
+    setAnimalesFiltrados(filtrados);
   };
 
   useFocusEffect(
@@ -29,9 +41,18 @@ const GestionAnimalesScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Gestión de Animales</Text>
+
+      {/* Barra de búsqueda */}
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Buscar por nombre o ID"
+        value={busqueda}
+        onChangeText={handleBusqueda}
+      />
+
       <ScrollView contentContainerStyle={styles.cardsContainer}>
-        {animales.length > 0 ? (
-          animales.map((animal) => (
+        {animalesFiltrados.length > 0 ? (
+          animalesFiltrados.map((animal) => (
             <TouchableOpacity
               key={animal.id}
               style={styles.card}
@@ -57,9 +78,17 @@ const GestionAnimalesScreen = ({ navigation }) => {
             </TouchableOpacity>
           ))
         ) : (
-          <Text>No hay animales registrados.</Text>
+          <Text>No hay animales que coincidan con la búsqueda.</Text>
         )}
       </ScrollView>
+
+      {/* Botón flotante para registrar animales */}
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => navigation.navigate('RegistroAnimal')}
+      >
+        <Text style={styles.floatingButtonText}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -74,6 +103,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginVertical: 20,
+  },
+  searchBar: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    backgroundColor: '#fff',
   },
   cardsContainer: {
     flexDirection: 'row',
@@ -111,6 +149,27 @@ const styles = StyleSheet.create({
   reportButtonText: {
     color: '#6dbf47',
     fontSize: 14,
+    fontWeight: 'bold',
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#6dbf47',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  floatingButtonText: {
+    color: '#fff',
+    fontSize: 24,
     fontWeight: 'bold',
   },
 });

@@ -6,6 +6,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import * as Font from 'expo-font';
 
 // Importar las pantallas
+import LoginScreen from './src/screens/LoginScreen';
 import MainMenuScreen from './src/navegation/MainMenuScreen';
 import GestionAnimalesScreen from './src/screens/GestionAnimalesScreen';
 import RegistroAnimalScreen from './src/screens/RegistroAnimalScreen';
@@ -23,7 +24,6 @@ import GraficoEnfermedadesScreen from './src/screens/GraficoEnfermedadesScreen';
 import InformeMedicoScreen from './src/screens/InformeMedicoScreen';
 import ResultadoInforme from './src/screens/ResultadoInforme';
 
-
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -38,7 +38,12 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="MainMenu">
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="MainMenu"
           component={MainMenuScreen}
@@ -111,7 +116,6 @@ export default function App() {
           component={PerfilProductoScreen} // Agregamos PerfilProductoScreen al Stack
           options={{ title: 'Perfil del Producto' }}
         />
-
         <Stack.Screen
           name="InformeMedicoScreen"
           component={InformeMedicoScreen}
@@ -122,9 +126,6 @@ export default function App() {
           component={ResultadoInforme}
           options={{ title: 'Resultado del Informe' }}
         />
-
-
-
       </Stack.Navigator>
     </NavigationContainer>
   );
