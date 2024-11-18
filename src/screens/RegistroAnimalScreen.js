@@ -2,13 +2,15 @@ import 'react-native-gesture-handler';
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { db } from '../../src/conection/firebase';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
+import { firebaseApp } from '../conection/firebase'; // Ajusta la ruta según tu estructura
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Font from 'expo-font';
+const firestore = getFirestore(firebaseApp); 
 
-const RegistroAnimalScreen = () => {
+export const RegistroAnimalScreen = () => {
   const [nombre, setNombre] = useState('');
   const [sexo, setSexo] = useState('');
   const [imagen, setImagen] = useState(null);
@@ -317,8 +319,8 @@ const RegistroAnimalScreen = () => {
           {imagen && <Image source={{ uri: imagen }} style={styles.imagePreview} />}
 
           <Text style={styles.label}>Nombre del Animal:</Text>
-          <TextInput placeholder="Nombre del Animal" value={nombre} onChangeText={setNombre} style={styles.input} />
-
+          <TextInput placeholder="Nombre del Animal"value={nombre}onChangeText={setNombre}testID="animalNameInput"/>
+          
           <Text style={styles.label}>Género:</Text>
           <Picker selectedValue={sexo} onValueChange={handleSexoChange} style={styles.input}  testID="genderPicker" // Agrega este atributo
           >

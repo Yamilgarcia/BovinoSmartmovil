@@ -108,9 +108,10 @@ const RegistroProductoScreen = () => {
           style={styles.input}
         />
 
-        <TouchableOpacity onPress={registrarProducto} style={styles.button}>
-          <Text style={styles.buttonText}>Registrar Producto</Text>
+        <TouchableOpacity onPress={registrarProducto} style={styles.button} testID="registerProductoButton">
+         <Text style={styles.buttonText}>Registrar Producto</Text>
         </TouchableOpacity>
+
       </View>
     </View>
   );
