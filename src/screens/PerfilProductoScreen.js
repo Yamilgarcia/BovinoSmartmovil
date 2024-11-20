@@ -32,6 +32,24 @@ const PerfilProductoScreen = ({ route, navigation }) => {
   };
 
   const handleUpdateProducto = async () => {
+    // Validaciones
+    if (!producto.nombre || producto.nombre.trim() === '') {
+      Alert.alert('Validación', 'El nombre del producto es obligatorio');
+      return;
+    }
+    if (!producto.tipo || producto.tipo.trim() === '') {
+      Alert.alert('Validación', 'El tipo de producto es obligatorio');
+      return;
+    }
+    if (!producto.dosis_recomendada || producto.dosis_recomendada.trim() === '') {
+      Alert.alert('Validación', 'La dosis recomendada es obligatoria');
+      return;
+    }
+    if (!producto.frecuencia_aplicacion || producto.frecuencia_aplicacion.trim() === '') {
+      Alert.alert('Validación', 'La frecuencia de aplicación es obligatoria');
+      return;
+    }
+
     try {
       const productoRef = doc(db, 'productos', productoId);
       await updateDoc(productoRef, producto);
