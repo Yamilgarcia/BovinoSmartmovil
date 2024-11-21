@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet, TouchableOpacity, Image, Switch } from 'react-native';
+import { ScrollView, View, Text, TextInput, Button, Alert, StyleSheet, TouchableOpacity, Image, Switch } from 'react-native';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../src/conection/firebase';
 import * as ImagePicker from 'expo-image-picker';
@@ -32,7 +32,6 @@ const PerfilProductoScreen = ({ route, navigation }) => {
   };
 
   const handleUpdateProducto = async () => {
-    // Validaciones
     if (!producto.nombre || producto.nombre.trim() === '') {
       Alert.alert('Validación', 'El nombre del producto es obligatorio');
       return;
@@ -91,70 +90,75 @@ const PerfilProductoScreen = ({ route, navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity onPress={seleccionarImagen} style={styles.imageContainer}>
-        {producto.imagen ? (
-          <Image source={{ uri: producto.imagen }} style={styles.imagePreview} />
-        ) : (
-          <Text>Seleccionar Imagen</Text>
-        )}
-      </TouchableOpacity>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <TouchableOpacity onPress={seleccionarImagen} style={styles.imageContainer}>
+          {producto.imagen ? (
+            <Image source={{ uri: producto.imagen }} style={styles.imagePreview} />
+          ) : (
+            <Text>Seleccionar Imagen</Text>
+          )}
+        </TouchableOpacity>
 
-      <Text style={styles.label}>Nombre del Producto:</Text>
-      <TextInput
-        style={styles.input}
-        value={producto.nombre}
-        onChangeText={(text) => setProducto({ ...producto, nombre: text })}
-      />
-
-      <Text style={styles.label}>Tipo:</Text>
-      <TextInput
-        style={styles.input}
-        value={producto.tipo}
-        onChangeText={(text) => setProducto({ ...producto, tipo: text })}
-      />
-
-      <Text style={styles.label}>Dosis Recomendada:</Text>
-      <TextInput
-        style={styles.input}
-        value={producto.dosis_recomendada}
-        onChangeText={(text) => setProducto({ ...producto, dosis_recomendada: text })}
-      />
-
-      <Text style={styles.label}>Frecuencia de Aplicación:</Text>
-      <TextInput
-        style={styles.input}
-        value={producto.frecuencia_aplicacion}
-        onChangeText={(text) => setProducto({ ...producto, frecuencia_aplicacion: text })}
-      />
-
-      <Text style={styles.label}>Notas:</Text>
-      <TextInput
-        style={styles.input}
-        value={producto.notas}
-        onChangeText={(text) => setProducto({ ...producto, notas: text })}
-      />
-
-      <View style={styles.switchContainer}>
-        <Text style={styles.label}>Es Tratamiento:</Text>
-        <Switch
-          value={producto.es_tratamiento}
-          onValueChange={(value) => setProducto({ ...producto, es_tratamiento: value })}
+        <Text style={styles.label}>Nombre del Producto:</Text>
+        <TextInput
+          style={styles.input}
+          value={producto.nombre}
+          onChangeText={(text) => setProducto({ ...producto, nombre: text })}
         />
+
+        <Text style={styles.label}>Tipo:</Text>
+        <TextInput
+          style={styles.input}
+          value={producto.tipo}
+          onChangeText={(text) => setProducto({ ...producto, tipo: text })}
+        />
+
+        <Text style={styles.label}>Dosis Recomendada:</Text>
+        <TextInput
+          style={styles.input}
+          value={producto.dosis_recomendada}
+          onChangeText={(text) => setProducto({ ...producto, dosis_recomendada: text })}
+        />
+
+        <Text style={styles.label}>Frecuencia de Aplicación:</Text>
+        <TextInput
+          style={styles.input}
+          value={producto.frecuencia_aplicacion}
+          onChangeText={(text) => setProducto({ ...producto, frecuencia_aplicacion: text })}
+        />
+
+        <Text style={styles.label}>Notas:</Text>
+        <TextInput
+          style={styles.input}
+          value={producto.notas}
+          onChangeText={(text) => setProducto({ ...producto, notas: text })}
+        />
+
+        <View style={styles.switchContainer}>
+          <Text style={styles.label}>Es Tratamiento:</Text>
+          <Switch
+            value={producto.es_tratamiento}
+            onValueChange={(value) => setProducto({ ...producto, es_tratamiento: value })}
+          />
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleUpdateProducto}>
+          <Text style={styles.buttonText}>Guardar Cambios</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={handleDeleteProducto}>
+          <Text style={styles.buttonText}>Eliminar Producto</Text>
+        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.button} onPress={handleUpdateProducto}>
-        <Text style={styles.buttonText}>Guardar Cambios</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={handleDeleteProducto}>
-        <Text style={styles.buttonText}>Eliminar Producto</Text>
-      </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
     padding: 20,
