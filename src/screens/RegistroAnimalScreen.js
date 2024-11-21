@@ -8,7 +8,7 @@ import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Font from 'expo-font';
-const firestore = getFirestore(firebaseApp); 
+const firestore = getFirestore(firebaseApp);
 
 export const RegistroAnimalScreen = () => {
   const [nombre, setNombre] = useState('');
@@ -319,10 +319,10 @@ export const RegistroAnimalScreen = () => {
           {imagen && <Image source={{ uri: imagen }} style={styles.imagePreview} />}
 
           <Text style={styles.label}>Nombre del Animal:</Text>
-          <TextInput placeholder="Nombre del Animal"value={nombre}onChangeText={setNombre}testID="animalNameInput"/>
-          
+          <TextInput placeholder="Nombre del Animal" value={nombre} onChangeText={setNombre} style={styles.input} testID="animalNameInput" />
+
           <Text style={styles.label}>Género:</Text>
-          <Picker selectedValue={sexo} onValueChange={handleSexoChange} style={styles.input}  testID="genderPicker" // Agrega este atributo
+          <Picker selectedValue={sexo} onValueChange={handleSexoChange} style={styles.input} testID="genderPicker" // Agrega este atributo
           >
             <Picker.Item label="Seleccionar" value="" />
             <Picker.Item label="Macho" value="Macho" />
@@ -375,8 +375,8 @@ export const RegistroAnimalScreen = () => {
 
           {/* Botón para mostrar/ocultar la sección de pesos */}
           <TouchableOpacity onPress={() => setMostrarPesos(!mostrarPesos)} style={styles.toggleButton} testID="togglePesosButton">
-  <Text style={styles.buttonText}>{mostrarPesos ? 'Ocultar Pesos' : 'Mostrar Pesos'}</Text>
-</TouchableOpacity>
+            <Text style={styles.buttonText}>{mostrarPesos ? 'Ocultar Pesos' : 'Mostrar Pesos'}</Text>
+          </TouchableOpacity>
 
 
           {mostrarPesos && (
