@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Image,
+  ScrollView, // Importación de ScrollView
+} from 'react-native';
 import { db } from '../../src/conection/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
@@ -26,7 +35,7 @@ const RegistroProductoScreen = () => {
     }
   };
 
-  const registrarProducto = async () => { 
+  const registrarProducto = async () => {
     if (!nombre || !tipo || !dosisRecomendada || !frecuenciaAplicacion) {
       Alert.alert('Error', 'Por favor completa todos los campos obligatorios');
       return;
@@ -52,13 +61,13 @@ const RegistroProductoScreen = () => {
       setEsTratamiento(false);
       setImagen(null);
     } catch (error) {
-      console.error("Error registrando el producto: ", error);
+      console.error('Error registrando el producto: ', error);
       Alert.alert('Error', 'Error al registrar el producto');
     }
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.formContainer}>
         <TouchableOpacity onPress={seleccionarImagen} style={styles.imageContainer}>
           {imagen ? (
@@ -109,18 +118,16 @@ const RegistroProductoScreen = () => {
         />
 
         <TouchableOpacity onPress={registrarProducto} style={styles.button} testID="registerProductoButton">
-         <Text style={styles.buttonText}>Registrar Producto</Text>
+          <Text style={styles.buttonText}>Registrar Producto</Text>
         </TouchableOpacity>
-
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#FFFFFF',
   },
   formContainer: {
@@ -130,6 +137,7 @@ const styles = StyleSheet.create({
     borderColor: '#3E7B31',
     borderWidth: 4,
     marginTop: 60,
+    marginHorizontal: 10, // Ajuste para scroll
   },
   label: {
     fontSize: 16,

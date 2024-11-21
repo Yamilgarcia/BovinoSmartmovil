@@ -101,6 +101,11 @@ const MainMenuScreen = ({ navigation }) => {
           style={styles.optionButton}
           onPress={() => navigation.navigate('IAScreen')}
         >
+
+          <Image
+            source={require('../../assets/iconos/inteligencia-artificial.png')}
+            style={styles.icon2}
+          />
           <View style={styles.optionTextContainer}>
             <Text style={styles.optionText}>IA BovinoSmart</Text>
           </View>
@@ -166,6 +171,7 @@ const styles = StyleSheet.create({
   icon2: {
     width: 100,
     height: 100,
+    marginTop: 10,
   },
 });
 
