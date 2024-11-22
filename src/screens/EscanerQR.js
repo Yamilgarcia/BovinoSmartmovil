@@ -44,7 +44,7 @@ export default function EscanerQR({ navigation }) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>←</Text>
+       
         </TouchableOpacity>
         <Text style={styles.title}>Escáner QR</Text>
       </View>
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    color: '#fff',
+    color: '#000000',
     fontWeight: 'bold',
   },
   searchWrapper: {

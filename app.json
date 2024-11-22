@@ -1,27 +1,35 @@
 {
   "expo": {
     "name": "BovinosmartMovil",
-    "slug": "BovinosmartMovil",
+    "slug": "bovinosmart",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/iconos/icon.png",
+    "icon": "./assets/iconos/Logobovino.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/iconos/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
+      
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/iconos/adaptive-icon.png",
+        "foregroundImage": "./assets/iconos/Logobovino.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.yamil12.bovinosmart"
     },
     "web": {
       "favicon": "./assets/iconos/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b24f52fc-f5d6-4cf4-a1a4-2089d1e578bf"
+      }
+    },
+    "owner": "yamil12"
   }
 }

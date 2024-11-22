@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Button, Alert, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { db } from '../../src/conection/firebase';
-import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore'; // Importa deleteDoc
-import * as ImagePicker from 'expo-image-picker'; // Importa ImagePicker
+import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import * as ImagePicker from 'expo-image-picker';
 
 const PerfilEnfermedadScreen = ({ route, navigation }) => {
   const { enfermedadId } = route.params;
@@ -13,11 +13,6 @@ const PerfilEnfermedadScreen = ({ route, navigation }) => {
   const [sintomas, setSintomas] = useState('');
   const [modoTransmision, setModoTransmision] = useState('');
   const [imagen, setImagen] = useState('');
-
-  // Estados separados para manejar la altura de cada TextInput
-  const [descripcionHeight, setDescripcionHeight] = useState(80);
-  const [sintomasHeight, setSintomasHeight] = useState(80);
-  const [modoTransmisionHeight, setModoTransmisionHeight] = useState(80);
 
   useEffect(() => {
     const fetchEnfermedad = async () => {
@@ -44,10 +39,12 @@ const PerfilEnfermedadScreen = ({ route, navigation }) => {
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
+      base64: true,
     });
 
     if (!resultado.canceled) {
-      setImagen(resultado.assets[0].uri); // Guarda la URI de la imagen seleccionada
+      const base64Imagen = `data:image/jpeg;base64,${resultado.assets[0].base64}`;
+      setImagen(base64Imagen);
     }
   };
 
@@ -64,7 +61,7 @@ const PerfilEnfermedadScreen = ({ route, navigation }) => {
         descripcion,
         sintomas,
         modo_transmision: modoTransmision,
-        imagen, // Guarda la URL de la imagen en Firestore
+        imagen,
       });
       Alert.alert('Éxito', 'Enfermedad actualizada correctamente');
       setIsEditing(false);
@@ -74,13 +71,12 @@ const PerfilEnfermedadScreen = ({ route, navigation }) => {
     }
   };
 
-  // Función para eliminar la enfermedad
   const handleDeleteEnfermedad = async () => {
     try {
       const docRef = doc(db, 'enfermedades', enfermedadId);
-      await deleteDoc(docRef); // Elimina el documento
+      await deleteDoc(docRef);
       Alert.alert('Éxito', 'Enfermedad eliminada correctamente');
-      navigation.goBack(); // Regresa a la pantalla anterior
+      navigation.goBack();
     } catch (error) {
       console.error("Error al eliminar la enfermedad: ", error);
       Alert.alert('Error', 'No se pudo eliminar la enfermedad');
@@ -91,78 +87,78 @@ const PerfilEnfermedadScreen = ({ route, navigation }) => {
     <ScrollView contentContainerStyle={styles.container}>
       {enfermedad ? (
         <>
-          <Text style={styles.title}>{isEditing ? 'Editar Enfermedad' : 'Detalles de la Enfermedad'}</Text>
-          
-          <TouchableOpacity onPress={seleccionarImagen} style={styles.imageContainer}>
-            {imagen ? (
-              <Image source={{ uri: imagen }} style={styles.imagePreview} />
-            ) : (
-              <Image source={{ uri: enfermedad.imagen }} style={styles.imagePreview} />
-            )}
-          </TouchableOpacity>
+          <View style={styles.card}>
+            <TouchableOpacity onPress={isEditing ? seleccionarImagen : null} style={styles.imageContainer}>
+              <Image
+                source={{ uri: imagen || 'https://via.placeholder.com/150' }}
+                style={styles.image}
+              />
+            </TouchableOpacity>
 
-          <Text style={styles.label}>Nombre:</Text>
-          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Nombre:</Text>
             <TextInput
               style={styles.input}
               value={nombre}
               onChangeText={setNombre}
-              placeholder="Nombre"
               editable={isEditing}
+              placeholder="Nombre de la enfermedad"
             />
-          </View>
 
-          <Text style={styles.label}>Descripción:</Text>
-          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Descripción:</Text>
             <TextInput
-              style={[styles.input, { height: descripcionHeight }]} // Altura dinámica para Descripción
+              style={[styles.input, styles.textArea]}
               value={descripcion}
               onChangeText={setDescripcion}
-              placeholder="Descripción"
               editable={isEditing}
+              placeholder="Descripción de la enfermedad"
               multiline
-              onContentSizeChange={(e) => setDescripcionHeight(e.nativeEvent.contentSize.height)} // Ajusta la altura dinámicamente
             />
-          </View>
 
-          <Text style={styles.label}>Síntomas:</Text>
-          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Síntomas:</Text>
             <TextInput
-              style={[styles.input, { height: sintomasHeight }]} // Altura dinámica para Síntomas
+              style={[styles.input, styles.textArea]}
               value={sintomas}
               onChangeText={setSintomas}
-              placeholder="Síntomas"
               editable={isEditing}
+              placeholder="Síntomas de la enfermedad"
               multiline
-              onContentSizeChange={(e) => setSintomasHeight(e.nativeEvent.contentSize.height)} // Ajusta la altura dinámicamente
             />
-          </View>
 
-          <Text style={styles.label}>Modo de Transmisión:</Text>
-          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Modo de Transmisión:</Text>
             <TextInput
-              style={[styles.input, { height: modoTransmisionHeight }]} // Altura dinámica para Modo de Transmisión
+              style={[styles.input, styles.textArea]}
               value={modoTransmision}
               onChangeText={setModoTransmision}
-              placeholder="Modo de Transmisión"
               editable={isEditing}
+              placeholder="Modo de transmisión"
               multiline
-              onContentSizeChange={(e) => setModoTransmisionHeight(e.nativeEvent.contentSize.height)} // Ajusta la altura dinámicamente
             />
           </View>
-          
-          {isEditing ? (
-            <Button title="Guardar Cambios" onPress={handleUpdateEnfermedad} />
-          ) : (
-            <Button title="Editar" onPress={() => setIsEditing(true)} />
-          )}
 
-          {/* Botón para eliminar la enfermedad */}
-          <Button
-            title="Eliminar Enfermedad"
-            color="red"
-            onPress={handleDeleteEnfermedad} // Llama a la función de eliminar
-          />
+          <View style={styles.actions}>
+            {isEditing ? (
+              <>
+                <Button title="Guardar" onPress={handleUpdateEnfermedad} />
+                <Button title="Cancelar" onPress={() => setIsEditing(false)} />
+              </>
+            ) : (
+              <Button title="Editar" onPress={() => setIsEditing(true)} />
+            )}
+            <Button
+              title="Eliminar Enfermedad"
+              color="red"
+              onPress={() =>
+                Alert.alert(
+                  'Confirmar Eliminación',
+                  '¿Estás seguro de que deseas eliminar esta enfermedad? Esta acción no se puede deshacer.',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Eliminar', onPress: handleDeleteEnfermedad, style: 'destructive' },
+                  ]
+                )
+              }
+            />
+          </View>
         </>
       ) : (
         <Text>Cargando datos de la enfermedad...</Text>
@@ -173,47 +169,57 @@ const PerfilEnfermedadScreen = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1, // Permite que el ScrollView funcione correctamente
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#f4f4f8',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  card: {
+    padding: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 10,
+    elevation: 4,
     marginBottom: 20,
+  },
+  imageContainer: {
+    alignSelf: 'center',
+    marginBottom: 15,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  image: {
+    width: 150,
+    height: 150,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 12,
+    backgroundColor: '#f9f9f9',
+    fontSize: 16,
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
   },
   label: {
     fontSize: 16,
-    marginBottom: 5,
-    color: '#344e41',
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#555',
   },
-  inputContainer: {
-    borderWidth: 2,
-    borderColor: '#3E7B31', // Color verde
-    borderRadius: 10,
-    padding: 5,
-    marginBottom: 15,
-    backgroundColor: '#f9f9f9', // Fondo blanco para el campo de entrada
+  actions: {
+    marginTop: 20,
   },
-  input: {
-    paddingHorizontal: 10,
-    textAlignVertical: 'top', // Asegura que el texto esté alineado al principio en entradas multilinea
-    fontWeight: 'black', // Establece el texto en negrita
-    color: '#000', // Asegura que el texto sea negro
-  },
-  imageContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginBottom: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 200,
-  },
-  imagePreview: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 5,
+  button: {
+    marginBottom: 10, // Espaciado entre botones
   },
 });
 

@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Alert, RefreshControl } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Alert, RefreshControl } from 'react-native';
 import { db } from '../../src/conection/firebase';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 
 const GestionProductosScreen = ({ navigation }) => {
   const [productos, setProductos] = useState([]);
+  const [searchText, setSearchText] = useState(''); // Texto para el buscador
   const [refreshing, setRefreshing] = useState(false); // Estado para el refresh
 
   // Función para obtener la lista de productos desde Firestore
@@ -22,9 +24,12 @@ const GestionProductosScreen = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    fetchProductos();
-  }, []);
+  // Actualiza la lista de productos cuando la pantalla es enfocada
+  useFocusEffect(
+    useCallback(() => {
+      fetchProductos();
+    }, [])
+  );
 
   // Función para eliminar un producto
   const handleDeleteProducto = async (productoId) => {
@@ -45,16 +50,29 @@ const GestionProductosScreen = ({ navigation }) => {
     setRefreshing(false);
   }, []);
 
+  // Filtra los productos según el texto ingresado en el buscador
+  const filteredProductos = productos.filter((producto) =>
+    producto.nombre.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Gestión de Productos</Text>
 
+      {/* Campo de búsqueda */}
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Buscar productos por nombre"
+        value={searchText}
+        onChangeText={setSearchText}
+      />
+
       <ScrollView
         contentContainerStyle={styles.cardsContainer}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} // Integrar RefreshControl
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {productos.length > 0 ? (
-          productos.map((producto) => (
+        {filteredProductos.length > 0 ? (
+          filteredProductos.map((producto) => (
             <View key={producto.id} style={styles.card}>
               <TouchableOpacity
                 onPress={() => navigation.navigate('PerfilProducto', { productoId: producto.id })}
@@ -63,9 +81,7 @@ const GestionProductosScreen = ({ navigation }) => {
                   source={{ uri: producto.imagen || 'https://via.placeholder.com/100' }}
                   style={styles.cardImage}
                 />
-                <Text style={styles.cardTitle}>
-                  {producto.nombre || 'Producto sin nombre'}
-                </Text>
+                <Text style={styles.cardTitle}>{producto.nombre || 'Producto sin nombre'}</Text>
               </TouchableOpacity>
               <View style={styles.buttonGroup}>
                 <TouchableOpacity
@@ -104,15 +120,24 @@ const GestionProductosScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f9f4',
+    backgroundColor: '#eaf4e1', // Fondo claro verde
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 'bold',
     marginVertical: 20,
-    color: '#344e41',
+    color: '#2c5f2d', // Título verde oscuro
     textAlign: 'center',
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 15,
+    backgroundColor: '#ffffff',
+    fontSize: 16,
   },
   cardsContainer: {
     flexDirection: 'row',
@@ -120,65 +145,65 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   card: {
-    backgroundColor: '#81c784',
-    borderRadius: 15,
-    width: 160,
+    backgroundColor: '#6dbf47', // Verde claro para las tarjetas
+    borderRadius: 10,
+    width: '48%',
     padding: 15,
     marginBottom: 15,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 10,
+    elevation: 4,
   },
   cardImage: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
     marginBottom: 10,
     borderRadius: 10,
   },
   cardTitle: {
-    color: '#fff',
-    fontSize: 18,
+    color: '#ffffff',
+    fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
   },
   buttonGroup: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
     width: '100%',
   },
   deleteButton: {
     backgroundColor: '#e74c3c',
     padding: 8,
-    borderRadius: 5,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 50,
   },
   floatingButton: {
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#388e3c',
-    width: 65,
-    height: 65,
-    borderRadius: 32.5,
+    backgroundColor: '#6dbf47', // Verde similar al resto
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 6,
-    elevation: 6,
+    shadowRadius: 5,
+    elevation: 5,
   },
   floatingButtonText: {
-    color: '#fff',
-    fontSize: 26,
+    color: '#ffffff',
+    fontSize: 24,
     fontWeight: 'bold',
   },
 });
+
 
 export default GestionProductosScreen;

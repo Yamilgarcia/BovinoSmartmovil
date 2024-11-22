@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Alert,
   Image,
-  ScrollView, // Importación de ScrollView
+  ScrollView,
 } from 'react-native';
 import { db } from '../../src/conection/firebase';
 import { collection, addDoc } from 'firebase/firestore';
@@ -28,10 +28,12 @@ const RegistroProductoScreen = () => {
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
+      base64: true, // Activa el formato Base64
     });
 
     if (!resultado.canceled && resultado.assets.length > 0) {
-      setImagen(resultado.assets[0].uri);
+      const base64Imagen = `data:image/jpeg;base64,${resultado.assets[0].base64}`;
+      setImagen(base64Imagen); // Guarda la imagen como Base64
     }
   };
 
@@ -49,7 +51,7 @@ const RegistroProductoScreen = () => {
         frecuencia_aplicacion: frecuenciaAplicacion,
         notas,
         es_tratamiento: esTratamiento,
-        imagen,
+        imagen, // Guarda la imagen en formato Base64
       });
 
       Alert.alert('Éxito', 'Producto registrado exitosamente');
@@ -97,9 +99,14 @@ const RegistroProductoScreen = () => {
         <TextInput
           placeholder="Dosis Recomendada"
           value={dosisRecomendada}
-          onChangeText={setDosisRecomendada}
+          onChangeText={(text) => {
+            const numericValue = text.replace(/[^0-9.]/g, '');
+            setDosisRecomendada(numericValue);
+          }}
           style={styles.input}
+          keyboardType="numeric" // Habilita solo teclado numérico
         />
+
 
         <Text style={styles.label}>Frecuencia de Aplicación:</Text>
         <TextInput
@@ -121,6 +128,8 @@ const RegistroProductoScreen = () => {
           <Text style={styles.buttonText}>Registrar Producto</Text>
         </TouchableOpacity>
       </View>
+      {/* Espacio adicional para evitar que el contenido esté muy pegado al borde inferior */}
+      <View style={styles.extraSpace} />
     </ScrollView>
   );
 };
@@ -137,7 +146,7 @@ const styles = StyleSheet.create({
     borderColor: '#3E7B31',
     borderWidth: 4,
     marginTop: 60,
-    marginHorizontal: 10, // Ajuste para scroll
+    marginHorizontal: 10,
   },
   label: {
     fontSize: 16,
@@ -183,6 +192,9 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#000000',
     textAlign: 'center',
+  },
+  extraSpace: {
+    height: 50, // Espacio adicional debajo del formulario
   },
 });
 

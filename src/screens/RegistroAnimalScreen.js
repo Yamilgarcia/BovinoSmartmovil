@@ -134,12 +134,15 @@ export const RegistroAnimalScreen = () => {
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
+      base64: true, // Esto incluye la codificación en Base64
     });
+  
     if (!resultado.canceled && resultado.assets.length > 0) {
-      setImagen(resultado.assets[0].uri);
+      const base64Imagen = `data:image/jpeg;base64,${resultado.assets[0].base64}`;
+      setImagen(base64Imagen); // Guarda la imagen como Base64
     }
   };
-
+  
   const registrarControlBano = async (animalId) => {
     try {
       await addDoc(collection(db, `animales/${animalId}/control_banos`), {
@@ -206,18 +209,19 @@ export const RegistroAnimalScreen = () => {
       Alert.alert('Error', 'Por favor completa todos los campos obligatorios');
       return;
     }
-
+  
     const existeCodigo = await verificarCodigoUnico();
     if (existeCodigo) {
       Alert.alert('Error', 'El código único ya está registrado para otro animal. Por favor, usa un código diferente.');
       return;
     }
-
+  
     try {
+      // Guardar el animal principal
       const nuevoAnimalRef = await addDoc(collection(db, 'animales'), {
         nombre,
         sexo,
-        imagen,
+        imagen, // Aquí puedes guardar la imagen como Base64
         codigo_idVaca,
         fecha_nacimiento: fechaNacimiento.toISOString().split('T')[0],
         raza,
@@ -227,10 +231,10 @@ export const RegistroAnimalScreen = () => {
         peso_actual: parseFloat(pesoActual),
         estado,
       });
-
+  
       const animalId = nuevoAnimalRef.id;
-
-      // Registrar estado reproductivo si la sección está visible
+  
+      // Registrar estado reproductivo (si aplica)
       if (mostrarEstadoReproductivo) {
         const estadoData = {
           ciclo_celo: sexo === 'Hembra' ? estadoReproductivo.ciclo_celo : null,
@@ -242,38 +246,41 @@ export const RegistroAnimalScreen = () => {
           uso_programa_inseminacion: sexo === 'Macho' ? usoProgramaInseminacion : null,
           resultado_prueba_reproductiva: sexo === 'Macho' ? resultadoPruebaReproductiva : null,
         };
-
+  
         await addDoc(collection(db, `animales/${animalId}/estado_reproductivo`), estadoData);
       }
-
-
+  
+      // Registrar enfermedades (si hay una seleccionada)
       if (enfermedadSeleccionada) {
         await addDoc(collection(db, `animales/${animalId}/enfermedades`), {
           enfermedad: enfermedadSeleccionada,
           fecha: fechaEnfermedad.toISOString().split('T')[0],
         });
       }
-
+  
+      // Registrar productos aplicados
       for (let producto of productos) {
         await addDoc(collection(db, `animales/${animalId}/productosAplicados`), producto);
       }
-
-      // Registrar control de baño si la sección está visible
+  
+      // Registrar control de baño (si está visible)
       if (mostrarBanos) {
-        console.log("Registrando control de baño para animal:", animalId);
         await registrarControlBano(animalId);
       }
-      // Registrar producción de leche si la sección está visible
+  
+      // Registrar producción de leche (si está visible)
       if (mostrarProduccionLeche) {
         await registrarProduccionLeche(animalId);
       }
-
-      // Registrar inseminación si la sección está visible
+  
+      // Registrar inseminación (si está visible)
       if (mostrarInseminaciones) {
         await registrarInseminacion(animalId);
       }
-
+  
+      // Mostrar mensaje de éxito
       Alert.alert('Éxito', 'Animal y datos registrados exitosamente');
+  
       // Restablecer los campos del formulario
       setNombre('');
       setSexo('');
@@ -308,6 +315,7 @@ export const RegistroAnimalScreen = () => {
       Alert.alert('Error', 'Error al registrar el animal');
     }
   };
+  
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">

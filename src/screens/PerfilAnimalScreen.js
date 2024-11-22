@@ -548,12 +548,16 @@ const PerfilAnimalScreen = ({ route }) => {
             allowsEditing: true,
             aspect: [4, 3],
             quality: 1,
+            base64: true, // Codifica la imagen a Base64
         });
 
         if (!result.canceled && result.assets.length > 0) {
-            setAnimal({ ...animal, imagen: result.assets[0].uri });
+            const base64Imagen = `data:image/jpeg;base64,${result.assets[0].base64}`;
+            setAnimal({ ...animal, imagen: base64Imagen });
         }
     };
+
+
     const formatDate = (date) => {
         if (!date || !(date instanceof Date)) return 'Fecha no disponible';
         const day = String(date.getDate()).padStart(2, '0');
@@ -566,29 +570,43 @@ const PerfilAnimalScreen = ({ route }) => {
     const handleUpdateAnimal = async () => {
         try {
             if (animal) {
+                // Validación básica de los campos obligatorios
+                if (!animal.nombre || !animal.sexo || !codigoIdVaca) {
+                    Alert.alert('Error', 'Por favor, completa todos los campos obligatorios.');
+                    return;
+                }
+
+                // Referencia al documento del animal en Firestore
                 const docRef = doc(db, 'animales', animalId);
+
+                // Actualización del documento
                 await updateDoc(docRef, {
-                    codigo_idVaca: codigoIdVaca,
-                    raza,
-                    observaciones, // Agrega las observaciones al objeto que se guarda
-                    fecha_nacimiento: formatDateForFirestore(fechaNacimiento),
-                    peso_nacimiento: parseFloat(pesoNacimiento) || 0,
-                    peso_destete: parseFloat(pesoDestete) || 0,
-                    peso_actual: parseFloat(pesoActual) || 0,
-                    nombre: animal.nombre,
-                    sexo: animal.sexo,
-                    estado: animal.estado,
-                    imagen: animal.imagen || '',
+                    codigo_idVaca: codigoIdVaca, // Código único del animal
+                    raza, // Raza del animal
+                    observaciones, // Observaciones generales
+                    fecha_nacimiento: formatDateForFirestore(fechaNacimiento), // Fecha de nacimiento en formato Firestore
+                    peso_nacimiento: parseFloat(pesoNacimiento) || 0, // Peso al nacimiento
+                    peso_destete: parseFloat(pesoDestete) || 0, // Peso al destete
+                    peso_actual: parseFloat(pesoActual) || 0, // Peso actual
+                    nombre: animal.nombre, // Nombre del animal
+                    sexo: animal.sexo, // Género del animal
+                    estado: animal.estado, // Estado del animal
+                    imagen: animal.imagen || '', // Imagen en formato Base64 (o cadena vacía si no hay imagen)
                 });
 
+                // Notificación de éxito
+                Alert.alert('Éxito', 'Datos del animal actualizados correctamente.');
 
-                Alert.alert('Éxito', 'Datos del animal actualizados.');
+                // Salir del modo de edición
                 setIsEditing(false);
-                fetchAnimalData(); // Vuelve a cargar los datos actualizados
+
+                // Recargar los datos actualizados
+                fetchAnimalData();
             }
         } catch (error) {
+            // Manejo de errores
             console.error('Error al actualizar el animal:', error);
-            Alert.alert('Error', 'No se pudo actualizar el animal.');
+            Alert.alert('Error', 'No se pudo actualizar los datos del animal. Por favor, inténtalo de nuevo.');
         }
     };
 
@@ -1673,7 +1691,7 @@ const PerfilAnimalScreen = ({ route }) => {
                     <View style={styles.actions}>
                         {isEditing ? (
                             <>
-                                <Button title="Guardar Cambios" onPress={handleSaveChanges} />
+                                <Button title="Guardar" onPress={handleSaveChanges} />
                                 <Button title="Cancelar" onPress={() => setIsEditing(false)} />
                             </>
                         ) : (

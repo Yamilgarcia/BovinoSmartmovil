@@ -1,29 +1,39 @@
-// src/screens/GestionEnfermedadesScreen.js
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput } from 'react-native';
 import { db } from '../../src/conection/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 const GestionEnfermedadesScreen = ({ navigation }) => {
   const [enfermedades, setEnfermedades] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(''); // Estado para el texto del buscador
+  const [filteredEnfermedades, setFilteredEnfermedades] = useState([]); // Estado para las enfermedades filtradas
 
   useEffect(() => {
-    // Función para obtener la lista de enfermedades desde Firestore
-    const fetchEnfermedades = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'enfermedades'));
-        const enfermedadesList = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setEnfermedades(enfermedadesList);
-      } catch (error) {
-        console.error("Error al obtener las enfermedades: ", error);
-      }
-    };
+    // Suscribirse a cambios en la colección "enfermedades" en Firestore
+    const unsubscribe = onSnapshot(collection(db, 'enfermedades'), (snapshot) => {
+      const enfermedadesList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setEnfermedades(enfermedadesList);
+      setFilteredEnfermedades(enfermedadesList); // Inicializar las enfermedades filtradas
+    });
 
-    fetchEnfermedades();
+    return () => unsubscribe(); // Cleanup de la suscripción
   }, []);
+
+  // Función para manejar el filtro de búsqueda
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.trim() === '') {
+      setFilteredEnfermedades(enfermedades);
+    } else {
+      const filtered = enfermedades.filter((enfermedad) =>
+        enfermedad.nombre.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredEnfermedades(filtered);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -33,25 +43,30 @@ const GestionEnfermedadesScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backButton}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.searchTitle}>Buscar</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar enfermedad..."
+          value={searchQuery}
+          onChangeText={handleSearch}
+        />
         <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('RegistroEnfermedad')}>
           <Text style={styles.addText}>+</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.cardsContainer}>
-        {enfermedades.length > 0 ? (
-          enfermedades.map((enfermedad) => (
+        {filteredEnfermedades.length > 0 ? (
+          filteredEnfermedades.map((enfermedad) => (
             <TouchableOpacity 
               key={enfermedad.id} 
               style={styles.card}
-              onPress={() => navigation.navigate('PerfilEnfermedad', { enfermedadId: enfermedad.id })} // Navega a PerfilEnfermedad
+              onPress={() => navigation.navigate('PerfilEnfermedad', { enfermedadId: enfermedad.id })}
             >
               <Image
                 source={{ uri: enfermedad.imagen || 'https://via.placeholder.com/100' }}
                 style={styles.cardImage}
               />
-              <Text style={styles.cardTitle}>{enfermedad.nombre}:</Text>
+              <Text style={styles.cardTitle}>{enfermedad.nombre}</Text>
             </TouchableOpacity>
           ))
         ) : (
@@ -80,12 +95,15 @@ const styles = StyleSheet.create({
   },
   backButton: {
     fontSize: 30,
-    marginRight: 20,
+    marginRight: 10,
   },
-  searchTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  searchInput: {
     flex: 1,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 8,
+    marginRight: 10,
   },
   addButton: {
     backgroundColor: '#6dbf47',
